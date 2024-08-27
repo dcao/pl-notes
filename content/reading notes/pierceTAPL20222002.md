@@ -116,16 +116,12 @@ In this calculus, our uninterpreted base types are **type variables** that can b
 
 $dom(\sigma)$ is the set of all type variables, and $range(\sigma)$ is the set of all types being mapped to. We can apply $\sigma$ to both types and terms. When applying it to terms, we just substitute out the type annotations in the term.
 
-## Views on type-checking type variables
+## Views on type-checking type variables.
 
 Let's say $t : T$ mentions some type variables. There are two questions we can ask about the well-typedness of $t$:
 
 1. Is $t$ well-typed for **all** possible type substitutions? $$\forall \sigma. \sigma \Gamma \vdash \sigma t : T$$
-2. Is $t$ well-typed for **some** possible type substitution?
-
-$$
-\exists \sigma. \sigma \Gamma \vdash \sigma t : T
-$$
+2. Is $t$ well-typed for **some** possible type substitution? $$ \exists \sigma. \sigma \Gamma \vdash \sigma t : T $$
 
 If we're trying to look at question 1, then type variables should be held *abstract* during type-checking, which ensures that a well-typed term will behave properly no matter what types are substituted in at the end. This is **parametric polymorphism**, i.e., **generics**!
 
@@ -154,10 +150,7 @@ For instance, if we see $t_{1}\ t_{2}$, with $t_{1} : T_{1}$ and $t_{2} : T_{2}$
 A **constraint set** $C$ is a set of equations $\{ S_{i} = T_{i} \mid i \in 1..n \}$. A substitution $\sigma$ *unifies* an equation $S = T$ if $\sigma T$ is *identical* to $\sigma S$. Unify as in "make them the same!" $\sigma$ can also unify (or *satisfy*) a whole constraint set.
 
 The typing rules for the **constraint typing relation** $\Gamma \vdash t : T \mid_{\mathcal{X}} C$ encodes the algorithm for doing constraint-based typing. We now explicitly carry around a constraint set $C$, and this judgment is read as "$t$ has type $T$ in environment $\Gamma$ *whenever the constraints $C$ are satisfied.*" The subscript $\mid_{X}$ keeps track of the set of type variables $\mathcal{X}$ that are *introduced* in a given rule. We need to be able to talk about different sets of type variables (for instance, to ensure they are non-overlapping), and this notation lets us do that. For example, here's the rule for variable types:
-
-$$
-\begin{prooftree} \AXC{$x : T \in \Gamma$} \UIC{$\Gamma \vdash x : T \mid_{\varnothing} \{  \}$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$x : T \in \Gamma$} \UIC{$\Gamma \vdash x : T \mid_{\varnothing} \{  \}$} \end{prooftree} $$
 Here, the subscript is just the empty set, since this judgment doesn't introduce any new type variables.
 
 The general intuition is that, given $t$ and $\Gamma$, we first check if $t$ is typable under $\Gamma$ by collecting all the constraints $C$ that must be satisfied for $t$ to have a type. To infer a type, we then find substitutions $\sigma$ that satisfy $C$. The actual process/algorithm of finding satisfying substitutions is called [[#Unification|unification]].
@@ -170,7 +163,7 @@ Here are all the type rules:
 - Function calls that would have enforced the type of their arguments (`CT-Succ`, `CT-Pred`, `CT-IsZero`) instead add a new constraint that whatever type the argument is, it should be a `Nat` or `Bool`.
 - `CT-If` combines all of the constraints for the predicate and bodies, introducing new constraints that ensure that the predicate is a `Bool` and the bodies have the same type. Here we see the importance of having the subscript $\mid_{\mathcal{X}}$, since it allows us to make sure that there's no weird variable shadowing happening between constraints across different branches.
 - Finally, `CT-App` is the only rule that introduces a new type variable. Since there's no existing type that refers to the result of the application—$T_{1}$ could be itself just a type variable, after all, this rule gives a brand new type variable to the result of the application, enforcing the constraint that $T_{1}$ is a function from the argument type of $t_{2}$ to our new variable $X$. All of the noise ensures that $\mathcal{X_{1}}$ and $\mathcal{X}_{2}$ are totally disjoint and don't mention any free variables in either of the type expressions, and that the new type variable $X$ isn't mentioned anywhere.
- 	- In practice, we would have a function that generates fresh type variables.
+	- In practice, we would have a function that generates fresh type variables.
 
 > [!danger] TODO
 > There's a progress and preservation proof here. Induction on type judgments, etc.
@@ -199,11 +192,11 @@ unify :: [Constraint] -> Maybe [Subst]
 unify [] = Just []
 unify ((Eq s t):cs) = case (s, t) of
     -- If the equation is already satisfied, don't need to add substitutions
- (s, t)     | s == t        <- unify cs
+	(s, t)     | s == t        <- unify cs
     -- If the equation is in the form X = blah, X must map to blah in our subst
- (Var x, t) | notFreeIn x t <- fmap (`comp` [x :-> t]) $ unify cs
- -- If the equation is in the form fuck = X, X must map to fuck in our subst
- (s, Var x) | notFreeIn x s <- fmap (`comp` [x :-> s]) $ unify cs
+	(Var x, t) | notFreeIn x t <- fmap (`comp` [x :-> t]) $ unify cs
+	-- If the equation is in the form fuck = X, X must map to fuck in our subst
+	(s, Var x) | notFreeIn x s <- fmap (`comp` [x :-> s]) $ unify cs
     -- If we have two arrow types, the parts before the arrows
     -- and the parts after should be equal
     (Arrow s1 s2, Arrow t1 t2) <- unify $ cs ++ [Eq s1 t1, Eq s2 t2]
@@ -224,10 +217,7 @@ If we have principal types, we can build a type inference algorithm that's more 
 ## Implicit type annotations
 
 With this machinery, we can now introduce the inferred-type lambda abstraction construct, typed as follows:
-
-$$
-\begin{prooftree} \AXC{$X \not\in \mathcal{X}$} \AXC{$\Gamma, x : X \vdash t_{1} : T \mid_{\mathcal{X}} C$} \BIC{$\Gamma \vdash \lambda x. t_{1} : X \to T \mid_{\mathcal{X} \cup \{ X \}} C$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$X \not\in \mathcal{X}$} \AXC{$\Gamma, x : X \vdash t_{1} : T \mid_{\mathcal{X}} C$} \BIC{$\Gamma \vdash \lambda x. t_{1} : X \to T \mid_{\mathcal{X} \cup \{ X \}} C$} \end{prooftree} $$
 This introduces a new type variable $X$ at this point to stand in for the argument type. This is more expressive than just having unannotated abstractions be syntax sugar for an abstraction with a type variable, since if we copy an unannotated abstraction, we can give it a new variable each time.
 
 ## Let-polymorphism
@@ -246,27 +236,18 @@ At a high level, the signature of `double` is telling us about the relationship 
 
 So how can we do this? Well, from [[pierceTAPL20222002#Implicit type annotations|the last section]], we have a mechanism for introducing fresh type variables whenever an abstraction is defined. But with our let binding type rule, we concretize a specific type for a let-bound variable (and thus a specific choice of type variable in `double`) when type-checking:
 
-$$
-\begin{prooftree} \AXC{$\Gamma \vdash t_{1} : T_{1}$} \AXC{$\Gamma, x : T_{1} \vdash t_{2} : T_{2}$} \BIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$\Gamma \vdash t_{1} : T_{1}$} \AXC{$\Gamma, x : T_{1} \vdash t_{2} : T_{2}$} \BIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree} $$
 
 Instead, we can substitute $x$ in the body, which avoids this issue and means that the lambda abstraction will be copied in each location, and thus will introduce new type variables each time:
 
-$$
-\begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2}$} \UIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree}
-$$
-
-$$
-\begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2} \mid_{\mathcal{X}} C$} \UIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2} \mid_{\mathcal{X}} C$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2}$} \UIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree} $$
+$$ \begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2} \mid_{\mathcal{X}} C$} \UIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2} \mid_{\mathcal{X}} C$} \end{prooftree} $$
 
 ### Type-checking let definitions
 
 Now, this formulation has some issues. First, since we no longer type-check let-bound variable definitions, we can pass in something like `let x = bullshit in 5` and it'll still type-check, which we don't want. So we can add a premise to the let rule that ensures $t_{1}$ is well-typed:
 
-$$
-\begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2}$} \AXC{$\Gamma \vdash t_{1} : T_{1}$} \BIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$\Gamma \vdash [x \mapsto t_{1}] t_{2} : T_{2}$} \AXC{$\Gamma \vdash t_{1} : T_{1}$} \BIC{$\Gamma \vdash \verb|let|\ x=t_{1}\ \verb|in|\ t_{2} : T_{2}$} \end{prooftree} $$
 
 Note that this is still different than the original let rule, since we're not including $x : T_{1}$ in the environment that we check $t_{2}$.
 
@@ -276,12 +257,7 @@ Another problem is that the let-bound variable definition is now type-checked on
 
 1. Use constraint typing to find type $S_{1}$ and constraint set $C_{1}$ for $t_{1}$.
 2. Use unification to find the principal type $T_{1}$ of $t_{1}$.
-3. *Generalize* the remaining type variables in $T_{1}$. $T_{1}$ is no longer a type, but a *type scheme*, representing the structure of a type with respect to universally quantified holes.
-
-$$
-T_{1} = \forall X_{1}, \dots, X_{n}. T
-$$
-
+3. *Generalize* the remaining type variables in $T_{1}$. $T_{1}$ is no longer a type, but a *type scheme*, representing the structure of a type with respect to universally quantified holes. $$ T_{1} = \forall X_{1}, \dots, X_{n}. T $$
 4. Extend the context to record this type scheme for the bound variable $x$, and type-check $t_{2}$.
 5. Whenever $x$ occurs in $t_{2}$, generate fresh type variables $Y_{1}, \dots, Y_n$ and use them to *instantiate* the type scheme for $T_{1}$, yielding $[X_{1} \mapsto Y_{1}, \dots, X_{n} \mapsto Y_{n}]T_{1}$, which becomes the type of $x$ in that use.
 
@@ -304,10 +280,7 @@ In line 1, `r` is inferred to have type scheme $\forall X. \verb|Ref|\ (X \to X)
 
 This is caused by a mismatch in types and semantics. In our typing rules, we basically create two copies of the `ref`, each of which is typed differently. But in our semantics, only one `ref` is ever allocated. In our typing rules, we immediately substitute the definition in the body, while in our semantics, we only do substitution after the let-bound var definition has been reduced to a value.
 
-One way of fixing this is adjusting evaluation to immediately substitute:
-$$
-\verb|let|\ x = t_{1}\ \verb|in|\ t_{2} \to [x \mapsto t_{1}] t_{2}
-$$
+One way of fixing this is adjusting evaluation to immediately substitute: $$ \verb|let|\ x = t_{1}\ \verb|in|\ t_{2} \to [x \mapsto t_{1}] t_{2} $$
 Under this evaluation system, our example works, but doesn't do what we would expect:
 
 ```
@@ -332,8 +305,8 @@ We looked at let-polymorphism before. Now, let's look at a more general form of 
 Before we get into this, let's describe what **polymorphism** means. There are many kinds of polymorphism:
 
 - **Parametric polymorphism**: basically, generics. Instantiate type variables per use as needed.
- 	- **Impredicative polymorphism** (i.e., *first-class polymorphism*) is the most powerful form of this
- 	- **[[#Let-polymorphism|Let-polymorphism]]** (i.e., *ML-style polymorphism*) restricts polymorphism to top-level `let` bindings and disallows functions that take polymorphic values as arguments, in exchange for better type inference.
+	- **Impredicative polymorphism** (i.e., *first-class polymorphism*) is the most powerful form of this
+	- **[[#Let-polymorphism|Let-polymorphism]]** (i.e., *ML-style polymorphism*) restricts polymorphism to top-level `let` bindings and disallows functions that take polymorphic values as arguments, in exchange for better type inference.
 - **Ad-hoc polymorphism**: ...
 - **Subtype polymorphism**: ...
 
@@ -343,8 +316,8 @@ System F introduces a few concepts to our lambda calculus:
 
 - **Universal quantification**. At the type level, we explicitly introduce type variables as their own construct and not just an uninterpreted base type. We can also write types that do universal quantification over these type variables: $\lambda X. T$
 - **Type abstraction and application**: there is a new *term* $\lambda X. t$ which introduces a fresh type variable that can be referred to in a term. Accordingly, there is a new application form $(\lambda X. t_{12})\ [T_{2}] \to [X \mapsto T_{2}] t_{12}$.
- 	- Type annotations are part of the term language, so we need to do this
- 	- As an example, `id = λX. λx:X. x;`
+	- Type annotations are part of the term language, so we need to do this
+	- As an example, `id = λX. λx:X. x;`
 - **Contexts contain type variable bindings**. Now, a context can also contain a list of type variables, to ensure uniqueness etc.
 
 The semantics and typing rules for System F are shown below:
@@ -362,10 +335,10 @@ For System F, this is undecidable. Even if you only erase what type is applied i
 - *Local type inference*
 - *Greedy type inference*: any type annotation can be skipped, replacing with a type variable. We do subtype checking until we see either $X <: T$ or $T <: X$, at which point we set $X = T$. This is simplest, but maybe not best. Lots of spooky action at a distance.
 - *[[#Let-polymorphism|Let-polymorphism]]*
- 	- This is a special case of System F where type variables range over quantifier-free types (*monotypes*) and quantified types (*polytypes*, i.e., type schemes) can only appear on the right side of arrows
+	- This is a special case of System F where type variables range over quantifier-free types (*monotypes*) and quantified types (*polytypes*, i.e., type schemes) can only appear on the right side of arrows
 - *Rank-2 polymorphism*: a type is rank-2 if no path from its root to a $\forall$ quantifier passes to the left of $\geq 2$ arrows.
- 	- $(\forall X. X \to X) \to Nat$ is rank-2
- 	- $((\forall X. X \to X) \to Nat) \to Nat$ is not.
+	- $(\forall X. X \to X) \to Nat$ is rank-2
+	- $((\forall X. X \to X) \to Nat) \to Nat$ is not.
 
 ## Erasure & evaluation order
 
@@ -412,10 +385,7 @@ For example, if we have:
 p = {*Nat, {a = 5, f = λx:Nat. succ(x)}}
 ```
 
-This can be type $\{ \exists X, \{ a:X, f:X \to X \} \}$. However, any of those $X$ values could also be instantiated with $Nat$! The typing rule for existential introduction requires an explicit annotation be given:
-$$
-\begin{prooftree} \AXC{$\Gamma \vdash t_{2} : [X \mapsto U]T_{2}$} \UIC{$\Gamma \vdash \{ *U, t_{2} \}\ \verb|as|\ \{ \exists X, T_{2} \}: \{ \exists X, T_{2} \}$} \end{prooftree}
-$$
+This can be type $\{ \exists X, \{ a:X, f:X \to X \} \}$. However, any of those $X$ values could also be instantiated with $Nat$! The typing rule for existential introduction requires an explicit annotation be given: $$ \begin{prooftree} \AXC{$\Gamma \vdash t_{2} : [X \mapsto U]T_{2}$} \UIC{$\Gamma \vdash \{ *U, t_{2} \}\ \verb|as|\ \{ \exists X, T_{2} \}: \{ \exists X, T_{2} \}$} \end{prooftree} $$
 
 Here's the full new rules for adding existential types to System F:
 
@@ -439,9 +409,9 @@ ADT counter =
     inc : Counter -> Counter;
 
   operations
- new = 1,
- get = λi:Nat. i,
- inc = λi:Nat. succ(i)
+	new = 1,
+	get = λi:Nat. i,
+	inc = λi:Nat. succ(i)
 ```
 
 We can translate this into existentials:
@@ -463,3 +433,4 @@ To get objects, our ADT should have the following structure:
 ```
 ADT = {exists X, {state:X, methods:{...}}}
 ```
+

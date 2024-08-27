@@ -19,7 +19,7 @@ scheduled: 2024-06-25
 
 > [!definition]
 > A well-typed term is **normalizable** or **normalizing** iff it's guaranteed to halt in a finite number of steps.
->
+> 
 > This applies to the simple lambda calculus, but not for many extensions. Additionally, not all type systems are normalizable.
 
 ## Normalization for simple types
@@ -47,18 +47,18 @@ Our proof then consists of three parts.
 
 - First, we state that every element of $R_{T}$ is normalizable, which is trivial by definition.
 - Next, we want to show that membership in $R_{T}$ is invariant under evaluation, i.e., if $t : T$ and $t \to t'$, then $R_{T}(t)$ iff $R_{T}(t')$.
- 	- Induction on structure of $T$.
- 	- Nothing to do if $T = A$.
- 	- If $T$ is an arrow type $T_{1} \to T_{2}$, there's more to do
-  		- We know $R_{T}(t)$ and $R_{T_{1}}(s)$ for some arbitrary $s$. We want to show $R_{T}(t')$.
-  		- By definition of $R_{T}$, we have $R_{T_{2}}(t\ s)$.
-  		- $t\ s \to t'\ s$, and from IH, we have $R_{T_{2}}(t'\ s)$.
-  		- And by definition of $R_{T}$, $R_{T}(t')$.
+	- Induction on structure of $T$.
+	- Nothing to do if $T = A$.
+	- If $T$ is an arrow type $T_{1} \to T_{2}$, there's more to do
+		- We know $R_{T}(t)$ and $R_{T_{1}}(s)$ for some arbitrary $s$. We want to show $R_{T}(t')$.
+		- By definition of $R_{T}$, we have $R_{T_{2}}(t\ s)$.
+		- $t\ s \to t'\ s$, and from IH, we have $R_{T_{2}}(t'\ s)$.
+		- And by definition of $R_{T}$, $R_{T}(t')$.
 - Finally, we want to show every term of type $T$ belongs to $R_{T}$.
- 	- Induction on typing derivations.
- 	- In lambda abstraction abstraction case, we have $t = \lambda x : S_{1}. s_{2}$.
-  		- We would want to state $R_{S_{2}}(s_{2})$ by the induction hypothesis (subderivations), but $s_{2}$ isn't a closed term!
-  		- The solution is just to be like "for all possible substitutions for all vars in the environment of $s_{2}$": ![[Screenshot 2024-06-25 at 2.46.05 PM.png]]
+	- Induction on typing derivations.
+	- In lambda abstraction abstraction case, we have $t = \lambda x : S_{1}. s_{2}$.
+		- We would want to state $R_{S_{2}}(s_{2})$ by the induction hypothesis (subderivations), but $s_{2}$ isn't a closed term!
+		- The solution is just to be like "for all possible substitutions for all vars in the environment of $s_{2}$": ![[Screenshot 2024-06-25 at 2.46.05 PM.png]]
 
 # § 13. References
 
@@ -106,41 +106,19 @@ Values (and thus terms, since *all values are terms*) include a store location `
 
 So let's formalize evaluation.
 
-First, dereferencing a term `!t1` means evaluating `t1` until it becomes a value.
-$$
-\begin{prooftree} \AXC{$t_{1} \mid \mu \to t_{1}' \mid \mu'$} \UIC{$!t_{1} \mid \mu \to !t_{1}' \mid \mu'$} \end{prooftree}
-$$
-Then, dereferencing is just getting the value from the store.
-$$
-\begin{prooftree} \AXC{$\mu(l) = v$} \UIC{$!l \mid \mu \to v \mid \mu$} \end{prooftree}
-$$
+First, dereferencing a term `!t1` means evaluating `t1` until it becomes a value. $$ \begin{prooftree} \AXC{$t_{1} \mid \mu \to t_{1}' \mid \mu'$} \UIC{$!t_{1} \mid \mu \to !t_{1}' \mid \mu'$} \end{prooftree} $$
+Then, dereferencing is just getting the value from the store. $$ \begin{prooftree} \AXC{$\mu(l) = v$} \UIC{$!l \mid \mu \to v \mid \mu$} \end{prooftree} $$
 Next, evaluating an assignment expression `t1 := t2` means evaluating both sides until they become values.
-
-$$
-\begin{prooftree} \AXC{$t_{1} \mid \mu \to t_{1}' \mid \mu'$} \UIC{$t_{1} := t_{2} \mid \mu \to t_{1}' := t_{2} \mid \mu'$} \end{prooftree}
-$$
-
-$$
-\begin{prooftree} \AXC{$t_{2} \mid \mu \to t_{2}' \mid \mu'$} \UIC{$v_{1} := t_{2} \mid \mu \to v_{1} := t_{2}' \mid \mu'$} \end{prooftree}
-$$
-Assignment just means mutating the store (when we prove type safety, we will show that $v_{1}$ must always be a location).
-$$
-v_{1} := v_{2} \mid \mu \to () \mid [v_{1} \mapsto v_{2}]\mu
-$$
-To evaluate creation of references, we first require that `ref t1`'s `t1` is fully evaluated. Then:
-$$
-\begin{prooftree} \AXC{$l \not\in dom(\mu)$} \UIC{$\verb|ref|\ v_{1} \mid \mu \to l \mid (\mu, l \mapsto v_{1})$} \end{prooftree}
-$$
-
+$$ \begin{prooftree} \AXC{$t_{1} \mid \mu \to t_{1}' \mid \mu'$} \UIC{$t_{1} := t_{2} \mid \mu \to t_{1}' := t_{2} \mid \mu'$} \end{prooftree} $$
+$$ \begin{prooftree} \AXC{$t_{2} \mid \mu \to t_{2}' \mid \mu'$} \UIC{$v_{1} := t_{2} \mid \mu \to v_{1} := t_{2}' \mid \mu'$} \end{prooftree} $$
+Assignment just means mutating the store (when we prove type safety, we will show that $v_{1}$ must always be a location). $$ v_{1} := v_{2} \mid \mu \to () \mid [v_{1} \mapsto v_{2}]\mu $$
+To evaluate creation of references, we first require that `ref t1`'s `t1` is fully evaluated. Then: $$ \begin{prooftree} \AXC{$l \not\in dom(\mu)$} \UIC{$\verb|ref|\ v_{1} \mid \mu \to l \mid (\mu, l \mapsto v_{1})$} \end{prooftree} $$
 ## Location and store typing
 
 So now that we have locations in the mix, what's the type of that? The most obvious answer would be to do something like this:
 
 > [!danger] Naive rule
->
-$$
-\begin{prooftree} \AXC{$\Gamma \mid \mu \vdash \mu(l) : T_{1}$} \UIC{$\Gamma \mid \mu \vdash l : \verb|Ref|\ T_{1}$} \end{prooftree}
-$$
+> $$ \begin{prooftree} \AXC{$\Gamma \mid \mu \vdash \mu(l) : T_{1}$} \UIC{$\Gamma \mid \mu \vdash l : \verb|Ref|\ T_{1}$} \end{prooftree} $$
 
 This intuitively makes sense; given the store as additional context, the type of a location is `Ref T1`, where `T1` is the type of whatever `l` points to in the store.
 
@@ -151,9 +129,7 @@ However, this definition actually sucks for two reasons:
 
 Intuitively, we know that when we create a location, that location will only ever have one type. If you create a `ref 5`, you can't assign `true` to it later on! So instead, we create a **store typing** function $\Sigma$ that maps locations to types. Now, we can reformulate store typings as so:
 
-$$
-\begin{prooftree} \AXC{$\Sigma(l) = T_{1}$} \UIC{$\Gamma \mid \Sigma \vdash l : \verb|Ref|\ T_{1}$} \end{prooftree}
-$$
+$$ \begin{prooftree} \AXC{$\Sigma(l) = T_{1}$} \UIC{$\Gamma \mid \Sigma \vdash l : \verb|Ref|\ T_{1}$} \end{prooftree} $$
 
 Notice that the store typing isn't in the context at the top. Unlike the first rule, which says "given $\mu$ as our context, this type judgment holds," here our rule is "given a store typing directly, we $l$ has this type under the context of that store typing."
 
@@ -172,9 +148,7 @@ First, we need to explicitly tie a store $\mu$ with a store typing $\Sigma$. A s
 
 Remember that preservation means if a well-typed term takes an evaluation step, the new term is also well-typed. Since we have a store to deal with, we must also assert the well-typedness of the store before and after too. Thus, we want to show:
 
-$$
-(\Gamma \mid \Sigma \vdash t : T) \land (\Gamma \mid \Sigma \vdash \mu) \land (t \mid \mu \to t' \mid m') \implies (\Gamma \mid \Sigma' \vdash t' : T) \land (\Gamma \mid \Sigma' \vdash \mu')
-$$
+$$ (\Gamma \mid \Sigma \vdash t : T) \land (\Gamma \mid \Sigma \vdash \mu) \land (t \mid \mu \to t' \mid m') \implies (\Gamma \mid \Sigma' \vdash t' : T) \land (\Gamma \mid \Sigma' \vdash \mu') $$
 
 For the proof, we first show preservation under substitution (done in the same way as with [[pierceTAPL11Simplytyped2002#^1b85cb|STLC]]): $$(\Gamma, x : S \mid \Sigma \vdash t : T) \land (\Gamma \mid \Sigma \vdash s : S) \implies \Gamma \mid \Sigma \vdash [x \mapsto s]t : T$$
 We also show that replacing the contents of a cell in a store with a new value of correct type doesn't change the type of the store:

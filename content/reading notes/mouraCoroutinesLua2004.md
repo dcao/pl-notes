@@ -43,9 +43,9 @@ Lua gives us *first-class coroutines*. We can **create** a coroutine, which does
 
 ```lua
 co1 = coroutine.create(function(a)
- coroutine.yield(a + 2)   -- yielding with a value
- coroutine.yield(a + 4)
- coroutine.yield(a + 6)
+	coroutine.yield(a + 2)   -- yielding with a value
+	coroutine.yield(a + 4)
+	coroutine.yield(a + 6)
 end)
 
 -- resume returns whether we could successfully resume, and the value.
@@ -55,9 +55,9 @@ success, value3 = coroutine.resume(co1, 2)
 
 -- equivalently
 co2 = coroutine.wrap(function()
- coroutine.yield(2)
- coroutine.yield(4)
- coroutine.yield(6)
+	coroutine.yield(2)
+	coroutine.yield(4)
+	coroutine.yield(6)
 end)
 
 v1 = co2(2)
@@ -71,24 +71,18 @@ Importantly, we can **yield within nested function calls**!
 
 > [!note] Stackful vs. stackless coroutines
 > Lua coroutines' ability to yield within function calls requires that they are *stackful*—they just maintain their entire activation stack upon suspension, so that we know what the call stack was on resumption. If you only allow a function to yield one level up, you can implement *stackless* coroutines, since you know where to resume from (one level up).
->
-> See <https://blog.varunramesh.net/posts/stackless-vs-stackful-coroutines/> for more info.
+> 
+> See https://blog.varunramesh.net/posts/stackless-vs-stackful-coroutines/ for more info.
 
 ## The operational semantics
 
 > [!note] Evaluation contexts
 > The paper uses a style of presenting operational semantics called **evaluation contexts**. Evaluation contexts, written with BNF notation, represent terms with a hole $\square$, denoting where a reduction can happen. If we have an evaluation context $E$, then $E[t]$ represents the set of terms where $t$ fills the hole.
->
-> We use these terms along with small-step rules to skip having to write tons of redundant rules. For instance, if you have the following grammar for holed terms:
-$$
-E \to \square \mid succ\ E \mid pred\ E \mid if\ E\ then\ t\ else\ t \mid iszero\ E
-$$
-> Then this rule replaces all the congruence rules (E-Succ, E-Pred, E-IsZero):
-$$
-\begin{prooftree} \AXC{$t \to t'$} \UIC{$E[t] \to E[t']$} \end{prooftree}
-$$
->
-> For more information, see <https://www3.nd.edu/~dchiang/teaching/pl/2022/semantics.html> and <https://courses.cs.cornell.edu/cs6110/2009sp/lectures/lec08-sp09.pdf>.
+> 
+> We use these terms along with small-step rules to skip having to write tons of redundant rules. For instance, if you have the following grammar for holed terms: $$ E \to \square \mid succ\ E \mid pred\ E \mid if\ E\ then\ t\ else\ t \mid iszero\ E $$
+> Then this rule replaces all the congruence rules (E-Succ, E-Pred, E-IsZero): $$ \begin{prooftree} \AXC{$t \to t'$} \UIC{$E[t] \to E[t']$} \end{prooftree} $$
+> 
+> For more information, see https://www3.nd.edu/~dchiang/teaching/pl/2022/semantics.html and https://courses.cs.cornell.edu/cs6110/2009sp/lectures/lec08-sp09.pdf.
 
 In our semantics, we add *labels* as a value type, used to reference coroutines. Stores now map from variables and labels to values. An evaluation context can be labeled.
 

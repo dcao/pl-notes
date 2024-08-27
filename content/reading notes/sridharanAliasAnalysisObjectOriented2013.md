@@ -46,7 +46,7 @@ We need to know about alias analysis when doing:
 - **[[ahoDragonBookMachineindependent2007#^9d6c9d|Loop-invariant code motion]]**: what if an alias modifies this value and it's not invariant in the loop condition?
 - **Auto parallelization**: we can't be sure that two seem parallelizable procedures actually don't touch each other's state if their pointers alias
 - **Calculating resource leaks**: often we want to do automated resource leak analysis in languages like Java.
- 	- If we do `this.a = Resource(); t1 = this.a; free(t1)`, we need our analysis to know that the resource was freed!
+	- If we do `this.a = Resource(); t1 = this.a; free(t1)`, we need our analysis to know that the resource was freed!
 
 Figuring out if two pointers will alias at any given point is ==undecidable==, and the answer might be *sometimes*! Thus, often we consider approximations that provide *may-alias analysis*: they tell us if two pointers *may* alias, but not if they *must*. However, this does guarantee that pointers *do not* alias!
 
@@ -70,9 +70,9 @@ Following the CS 6120 lecture, let's express a points-to analysis as a dataflow 
 - Our analysis value is a mapping from variables to heap locations they may point to. Thus, the domain $V$ is the set of mappings from variables to sets of heap locations: $\mathcal{P}(Var \to \mathcal{P}(Loc))$
 - The meet operation is **union on variables and the locations they can refer to**.
 - Our transfer function $f_{s}$ pattern matches on the statement $s$.
- 	- `l = const K`: $f_{s}(x) = x[l \mapsto x(l) \cup \varnothing]$
- 	- `l = alias y`: $f_{s}(x) = x[l \mapsto x(l) \cup x(y)]$
- 	- `l = new y`: $f_{s}(x) = x[l \mapsto x(l) \cup l_{1}]$, where $l_{1}$ is a fresh location.
+	- `l = const K`: $f_{s}(x) = x[l \mapsto x(l) \cup \varnothing]$
+	- `l = alias y`: $f_{s}(x) = x[l \mapsto x(l) \cup x(y)]$
+	- `l = new y`: $f_{s}(x) = x[l \mapsto x(l) \cup l_{1}]$, where $l_{1}$ is a fresh location.
 
 We say that two variables $x$ and $y$ *may alias* if, given dataflow analysis value $d$, $d(x) \cap d(y) \neq \varnothing$.
 
@@ -86,14 +86,8 @@ We can equivalently express this dataflow analysis in terms of constraints gener
 | ---------------- | --------------------------------------------------------------------------------------------------- |
 | `i: x = new T()` | $\{ o_{i} \} \subseteq pt(x)$                                                                       |
 | `x = y`          | $pt(y) \subseteq pt(x)$                                                                             |
-| `x = y.f`        |
-$$
-\begin{prooftree} \AXC{$o_{i} \in pt(y)$} \UIC{$pt(o_{i}.f) \subseteq pt(x)$} \end{prooftree}
-$$ |
-| `x.f = y`        |
-$$
-\begin{prooftree} \AXC{$o_{i} \in pt(x)$} \UIC{$pt(y) \subseteq pt(o_{i}.f)$} \end{prooftree}
-$$ |
+| `x = y.f`        | $$ \begin{prooftree} \AXC{$o_{i} \in pt(y)$} \UIC{$pt(o_{i}.f) \subseteq pt(x)$} \end{prooftree} $$ |
+| `x.f = y`        | $$ \begin{prooftree} \AXC{$o_{i} \in pt(x)$} \UIC{$pt(y) \subseteq pt(o_{i}.f)$} \end{prooftree} $$ |
 where $pt$ is the analysis value for some variable. The last two rules basically just do a "forall" with field access.
 
 Some properties about this analysis:
@@ -120,7 +114,7 @@ In a **context-sensitive analysis**, we provide a distinct context for each call
 
 > [!note] Parallels with $k$-CFAs and $m$-CFAs
 > This is essentially an alternate formulation of $k$-CFAs and $m$-CFAs.
->
+> 
 > As we go on, we'll be drawing parallels between this treatment of context-sensitivity and [[nielsonPrinciplesProgramAnalysis1999a#k-CFAs|that of control flow analysis of functional programs]].
 
 Our formulation of this analysis assumes we're reaching statements inside a method $m$. We define $contexts(m)$ as the set of contexts arisen for all calls of $m$; we can think of $contexts(m)$ as the current environment in $k$/$m$-CFA land. Our analysis takes an *abstract pointer* $\langle x, c \rangle$ as an argument now, instead of just $x$, and the analysis value is a pair of pointer location and context, just like with $m$-CFAs (remember that with $m$-CFAs, the context environment *is* a context).
@@ -135,27 +129,24 @@ Our formulation of this analysis is generic over two functions, which specify a 
 Let's break this down.
 
 - The first four rules just thread context information. `new` uses *heapSelector* to compute the stored context.
- - When $heapSelector(c) = c$, we have context-sensitive analysis.
- - When $heapSelector(c) = \varnothing$, we have context-insensitive analysis.
+	- When $heapSelector(c) = c$, we have context-sensitive analysis.
+	- When $heapSelector(c) = \varnothing$, we have context-insensitive analysis.
 - The `Invoke` rule is a doozy lmao
- - The first two lines deal with virtual dispatch, calculating the true method.
- - The $argvals$ include analyses for `r` and `a_1` thru `a_n`.
- - The *selector* function builds our new context.
-  - It takes the method being called $m'$, current context, call site $j$, and $argvals$, returning the new context for a method.
-  - In a context-insensitive analysis, selector just returns $\varnothing$.
-  - In $k$-CFA, *selector* returns $take(cons(j, c), k)$.
- - This new context must be in the contexts for $m'$.
- - The other rules propagate analyses from arguments to formal parameters.
-  - Formal parameter must include arguments.
-  - `x` must include return.
-  - Remember the [[nielsonPrinciplesProgramAnalysis1999a#Constraint flow rule-of-thumb|constraint flow rule-of-thumb]]!
+	- The first two lines deal with virtual dispatch, calculating the true method.
+	- The $argvals$ include analyses for `r` and `a_1` thru `a_n`.
+	- The *selector* function builds our new context.
+		- It takes the method being called $m'$, current context, call site $j$, and $argvals$, returning the new context for a method.
+		- In a context-insensitive analysis, selector just returns $\varnothing$.
+		- In $k$-CFA, *selector* returns $take(cons(j, c), k)$.
+	- This new context must be in the contexts for $m'$.
+	- The other rules propagate analyses from arguments to formal parameters.
+		- Formal parameter must include arguments.
+		- `x` must include return.
+		- Remember the [[nielsonPrinciplesProgramAnalysis1999a#Constraint flow rule-of-thumb|constraint flow rule-of-thumb]]!
 
 ## Object sensitivity
 
-Instead of distinguishing method calls by call strings, in **object-sensitive** analysis, we extend our context with `self` on every method call! The intuition is that this should be able to distinguish between identical operations performed on different `self` objects. Here, our context is no longer a list of call sites, but a set of locations—the different `self` objects that have had methods called on them in the process of getting to this expression:
-$$
-selector(\_{}, \_{}, \_{}, argvals) = \bigcup_{\langle o, c \rangle \in argvals[0]} cons(o, c)
-$$
+Instead of distinguishing method calls by call strings, in **object-sensitive** analysis, we extend our context with `self` on every method call! The intuition is that this should be able to distinguish between identical operations performed on different `self` objects. Here, our context is no longer a list of call sites, but a set of locations—the different `self` objects that have had methods called on them in the process of getting to this expression: $$ selector(\_{}, \_{}, \_{}, argvals) = \bigcup_{\langle o, c \rangle \in argvals[0]} cons(o, c) $$
 The precision of this analysis is incomparable to that of call-string-sensitive analysis. They're good at different things. People often combine them; use the other for static methods, this otherwise.
 
 We can also do **type-sensitivity**, where we record the types of the enclosing class for the allocation site. This is kinda as accurate as object sensitivity, but is more scalable.
@@ -186,27 +177,27 @@ To implement this analysis, we [[repsProgramAnalysisGraph1998|express the analys
 Since we want to essentially find what nodes are reachable from source nodes $o_{i}$, this is called a *transitive closure* problem. Transitive closure means—in the abstract—adding edges from nodes to transitively reachable nodes. Additionally, this is a *dynamic* transitive closure problem, since we can only add edges once existing edges have been traversed.
 
 > [!note]
-> This is an instance of
+> This is an instance of 
 
 The actual algorithm doesn't involve adding edges for transitive closures, and instead mirrors the CFA graph-based analysis:
 
 - Iterate through statements.
 - When an edge hasn't been added, we add it and do *difference propagation* from source to target
- - Only add abstract locations where that reachability info hasn't propagated to successors
+	- Only add abstract locations where that reachability info hasn't propagated to successors
 - Add successors to worklist where successors change
 
 **This is $O(n^3)$.** We can do some small optimizations to make this faster too.
 
 - Type filters
- - Label edges as requiring subtype of $T$ or exactly $T$.
- - `x = (T) y` requires for $y \to x$ a subtype of $T$.
- - Only add appropriately-typed objects to points-to sets.
- - Bit-vector intersection
+	- Label edges as requiring subtype of $T$ or exactly $T$.
+	- `x = (T) y` requires for $y \to x$ a subtype of $T$.
+	- Only add appropriately-typed objects to points-to sets.
+	- Bit-vector intersection
 - Cycle elimination
- - If we have `a = b; b = c; c = b;`, these will all have the same set. Collapse them to one node!
+	- If we have `a = b; b = c; c = b;`, these will all have the same set. Collapse them to one node!
 - Method-local state
- - For variables that don't point to method arguments, don't use global constraint system to compute them, and compute on-demand. Space savings!
- - Separate local state!
+	- For variables that don't point to method arguments, don't use global constraint system to compute them, and compute on-demand. Space savings!
+	- Separate local state!
 
 ## How to implement better context sensitivity
 
@@ -223,14 +214,14 @@ But there are some cases where we want **must-alias** analyses! For example, let
 
 ```java
 File makeFile() {
- return new File();
+	return new File();
 }
 
 File f = makeFile();
 File g = makeFile();
 
 if (...) {
- f.open();
+	f.open();
 }
 ```
 
@@ -256,10 +247,10 @@ Our analysis is flow-sensitive and context-sensitive. The analysis contains a bu
 - $o$ is an instance key.
 - $unique$ indicates if the allocation site has a single concrete live object
 - $AP_{M}$ is all access paths that **must** point to $o$
- - Has a *length*—maximal length of access path in this set—and a *width*—maximum number of access paths
+	- Has a *length*—maximal length of access path in this set—and a *width*—maximum number of access paths
 - $May$ is a bool, indicating if there are access paths (not in $AP_{M}$) that may point to $o$.
 - $AP_{MN}$ is all access paths that **don't** point to $o$.
- - Also has *length* and *width*
+	- Also has *length* and *width*
 
 They define *soundness* on tuples and states to ensure that tuples (in a state) follow these rules.
 
@@ -270,9 +261,9 @@ At each statement, for each input tuple, we transform it into a number of output
 Important high-level overview:
 
 - If we're allocating *and we've already seen this allocation before* (i.e., "$o$ = Stmt S"—it's already in our tuples and we're back here again), we return two tuples:
- - One for the new allocated object (we always do this regardless of if we've seen this allocation)
- - One for the previously allocated object assigned to that variable, which has been shadowed at this variable/access path by the new assignment.
-  - This makes it potentially not unique—if there was one variable that refers to this object, it'd be zero now!
+	- One for the new allocated object (we always do this regardless of if we've seen this allocation)
+	- One for the previously allocated object assigned to that variable, which has been shadowed at this variable/access path by the new assignment.
+		- This makes it potentially not unique—if there was one variable that refers to this object, it'd be zero now!
 - For `v = null`, for all objects in the state, every path that starts with `v` should be moved to "doesn't point to," since it's `null` now!
 
 Here's an example, where $\langle o, st \rangle$ denotes tuple $o$ with state $st$ (i.e., `init`, `open`, etc.).
@@ -294,9 +285,9 @@ With reflection, we can do meta-programming with string names of program constru
 
 ```java
 class Factory {
- Object make(String x) {
-  return Class.forName(x).newInstance();
- }
+	Object make(String x) {
+		return Class.forName(x).newInstance();
+	}
 }
 ```
 
@@ -304,8 +295,8 @@ From type-level to term-level with strings. Reflection. Now we have no idea what
 
 - We could track string constants, but people often do string concat and stuff.
 - We could look for typecasts and use that to guide analysis
- - But often programs don't do typecasts! e.g., calling the reflection fn `Method.invoke()`
- - Or things made with reflection flow to interfaces which are implemented by many different types.
+	- But often programs don't do typecasts! e.g., calling the reflection fn `Method.invoke()`
+	- Or things made with reflection flow to interfaces which are implemented by many different types.
 
 ## Under-approximation
 

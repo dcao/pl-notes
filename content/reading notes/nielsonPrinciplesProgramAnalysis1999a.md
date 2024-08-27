@@ -44,66 +44,45 @@ This analysis is also called **constraint-based analysis** since it relies on th
 
 In this section, we're going to build up to a *constant propagation* analysis on a functional language. We'll get there eventually, but we'll work up to it!
 
-Now of course, we want to record analysis values for variables, but since functional languages rely on expressions, we also want to record analysis values for *expressions* as well. We do this by associating each expression with a label $l \in Lab$. Our analysis $\sigma$ thus maps from either a variable $v \in Var$ or a label $l \in Lab$ to a [[lattice]] value $L$, which is the output type of our analysis:
-$$
-\sigma \in Var \cup Lab \to L
-$$
+Now of course, we want to record analysis values for variables, but since functional languages rely on expressions, we also want to record analysis values for *expressions* as well. We do this by associating each expression with a label $l \in Lab$. Our analysis $\sigma$ thus maps from either a variable $v \in Var$ or a label $l \in Lab$ to a [[lattice]] value $L$, which is the output type of our analysis: $$ \sigma \in Var \cup Lab \to L $$
 
 > [!note] Textbook difference
 > The textbook separates $\sigma$ into two components: an abstract environment $\hat{\rho}$, which has type $\widehat{\mathrm{Env}} = Var \to L$ and abstracts over execution environments, and $\hat{C}$, which has type $\widehat{\mathrm{Cache}} = Lab \to L$ an abstracts over execution *profiles*—traces of executed expressions. Additionally, instead of $L$, they use $\widehat{\mathrm{Val}} = \mathcal{P}(\mathrm{Term})$.
->
+> 
 > Additionally, you could get away with having an analysis just be from $Var \to L$ if you transform to [[continuation-passing style]] or [[flanaganEssenceCompilingContinuations1993|A-normal form]], since all expressions become "labeled" by variables. We don't do that here to show that this sort of analysis doesn't require a transformation into e.g., CPS to work.
 
 $L$ is the *abstract domain* of the analysis.
 
 Before we get to a full constant propagation analysis, we're gonna do a simpler analysis that this analysis depends on: figuring out what functions an expression can call! The values a function could return (and thus what constants an expression could evaluate to) depends on the functions it is transferring control flow to, and the arguments given to those functions.
 
-In **control flow analysis**, at every occurrence of a function application, we want to be able to know what functions we might be calling at that point. In other words, whenever we see $f(x)$, we want to know: what values could $f$ take on? We do this by associating every subexpression with a *set of possible functions* that the subexpression could take on. Thus, for now, our lattice type is:
-$$
-L = \mathcal{P}(\lambda x. e)
-$$
+In **control flow analysis**, at every occurrence of a function application, we want to be able to know what functions we might be calling at that point. In other words, whenever we see $f(x)$, we want to know: what values could $f$ take on? We do this by associating every subexpression with a *set of possible functions* that the subexpression could take on. Thus, for now, our lattice type is: $$ L = \mathcal{P}(\lambda x. e) $$
 
 So, how can we define this analysis? We define this analysis in terms of **constraints** over the possible analysis values for a variable or label. We then solve the constraints afterwards to get the most precise analysis value at each point.
 
 In the Aldrich lecture notes, this analysis is given as **inference rules** that generate constraints. For instance, this rule states that a constant expression $n$ with label $l$ (remember—all expressions are labeled!) yields ($\hookrightarrow$) no constraints:
 
 > [!note] Aldrich
->
-$$
-\begin{prooftree} \AXC{} \UIC{$[\![n]\!]^l \hookrightarrow \varnothing$} \end{prooftree}
-$$
+> $$ \begin{prooftree} \AXC{} \UIC{$[\![n]\!]^l \hookrightarrow \varnothing$} \end{prooftree} $$
 
 Equivalently, the textbook defines an **acceptability relation** $(\hat{C}, \hat{\rho}) \models e$, which states that $(\hat{C}, \hat{\rho})$ is an *acceptable* control flow analysis of the expression $e$. To define our constraints, we state under what conditions this relation holds. Here is the constant acceptability relation:
 
 > [!note] Textbook
->
-$$
-(\hat{C}, \hat{\rho}) \models c^l \text{ always}
-$$
+> $$ (\hat{C}, \hat{\rho}) \models c^l \text{ always} $$
 
 Now, let's look at the how both treatments deal with the rule for variables. The rule broadly states that for a variable $x^l$, we need to check if the analysis value for $x$ is a subset of (in lattice-land, smaller than) that of $l$:
 
 > [!note] Aldrich
->
-$$
-\begin{prooftree} \AXC{} \UIC{$[\![x]\!]^l \hookrightarrow \sigma(x) \sqsubseteq \sigma(l)$} \end{prooftree}
-$$
+> $$ \begin{prooftree} \AXC{} \UIC{$[\![x]\!]^l \hookrightarrow \sigma(x) \sqsubseteq \sigma(l)$} \end{prooftree} $$
 
 > [!note] Textbook
-> Note that at this point, they're specializing for the set analysis, and aren't thinking about lattices:
-$$
-(\hat{C}, \hat{\rho}) \models x^l \iff \hat{\rho}(x) \subseteq \hat{C}(l)
-$$
->
+> Note that at this point, they're specializing for the set analysis, and aren't thinking about lattices: $$ (\hat{C}, \hat{\rho}) \models x^l \iff \hat{\rho}(x) \subseteq \hat{C}(l) $$
+> 
 > Since you've probably gotten a flavor for translating between Aldrich and the textbook, I'll be using the textbook's syntax from now on, since it's more standard I guess.
 
 When we encounter a function, it's pretty straight-forward: we add a constraint that our analysis should include the fact that "this expression could evaluate to this lambda term":
 
 > [!note] Textbook
->
-$$
-(\hat{C}, \hat{\rho}) \models (\lambda x. t)^l \iff \{ (\lambda x. t^{l}) \} \subseteq \hat{C}(l)
-$$
+> $$ (\hat{C}, \hat{\rho}) \models (\lambda x. t)^l \iff \{ (\lambda x. t^{l}) \} \subseteq \hat{C}(l) $$
 
 Note that this definition doesn't demand that we analyze the body of the function at all. Instead, we do this analysis at function application, since we don't care about unreachable expressions.
 
@@ -111,29 +90,26 @@ Function application is more complex. Let's say we have an application $(e_{1}^{
 
 - We must have valid analyses at $l_{1}$ and $l_{2}$.
 - For every function $\lambda x. t^{l_{0}}$ in the analysis set for $l_{1}$ (i.e., the first expression):
- 	- We must have a valid analysis at the body of the function $l_{0}$, **and**
- 	- The possible set of functions that *formal parameter $x$ in the lambda* could evaluate to must include the possible set of functions stood for by the argument $l_{2}$, **and**
- 	- The set of function values this application can take on must include the values of the body of the function $l_{0}$.
+	- We must have a valid analysis at the body of the function $l_{0}$, **and**
+	- The possible set of functions that *formal parameter $x$ in the lambda* could evaluate to must include the possible set of functions stood for by the argument $l_{2}$, **and**
+	- The set of function values this application can take on must include the values of the body of the function $l_{0}$.
 
 > [!note] Textbook
->
-$$
-(\hat{C}, \hat{\rho}) \models (e_{1}^{l_{1}}\ e_{2}^{l_{2}})^l \iff (\hat{C}, \hat{\rho}) \models e_{1}^{l_{1}} \land (\hat{C}, \hat{\rho}) \models e_{2}^{l_{2}} \land \forall (\lambda x. t^{l_{0}}) \in \hat{C}(l_{1}). (\hat{C}, \hat{\rho}) \models t^{l_{0}} \land \hat{C}(l_{2}) \subseteq \hat{\rho}(x) \land \hat{C}(l_{0}) \subseteq \hat{C}(l)
-$$
+> $$ (\hat{C}, \hat{\rho}) \models (e_{1}^{l_{1}}\ e_{2}^{l_{2}})^l \iff (\hat{C}, \hat{\rho}) \models e_{1}^{l_{1}} \land (\hat{C}, \hat{\rho}) \models e_{2}^{l_{2}} \land \forall (\lambda x. t^{l_{0}}) \in \hat{C}(l_{1}). (\hat{C}, \hat{\rho}) \models t^{l_{0}} \land \hat{C}(l_{2}) \subseteq \hat{\rho}(x) \land \hat{C}(l_{0}) \subseteq \hat{C}(l) $$
 
 ## Constraint flow rule-of-thumb
 
 We can summarize the way that constraints flow thusly: **the argument flows to the parameter**, and **the abstraction body flows to the application**. Consider an application $((\lambda v. t^b)(e^l))^a$
 
 - The argument flows to the parameter means that $l$ flows to $v$. That is, the analysis for $l$ must be a subset of the analysis for $v$. $\hat{C}(l) \subseteq \hat{\rho}(v)$.
- 	- Whatever analysis that holds for the argument must also hold for the parameter, since when the function is called, the parameter takes on *at least* that argument as its value.
- 	- The parameter could take on other arguments in other places, hence why it's argument subset parameter and not other way around.
+	- Whatever analysis that holds for the argument must also hold for the parameter, since when the function is called, the parameter takes on *at least* that argument as its value.
+	- The parameter could take on other arguments in other places, hence why it's argument subset parameter and not other way around.
 - The body flows to the application means that $b$ flows to $a$. The analysis for $b$ must be a subset of the analysis for $a$. $\hat{C}(b) \subseteq \hat{C}(a)$
- 	- Function application will eventually yield $t^b$, the body of the abstraction.
- 	- The analysis for $b$ will take into account all the possible concrete values of the parameter.
- 	- Thus, the analysis for $b$ should also hold for $a$, which provides one possible concrete value of the parameter.
- 	- This is an over-approximate analysis, since it assumes the analysis for $b$, which is taken assuming that $v$ could take on all sorts of values at different application points, is a *subset* of the analysis for $a$.
- 	- But this is the safe, conservative estimate!
+	- Function application will eventually yield $t^b$, the body of the abstraction.
+	- The analysis for $b$ will take into account all the possible concrete values of the parameter.
+	- Thus, the analysis for $b$ should also hold for $a$, which provides one possible concrete value of the parameter.
+	- This is an over-approximate analysis, since it assumes the analysis for $b$, which is taken assuming that $v$ could take on all sorts of values at different application points, is a *subset* of the analysis for $a$.
+	- But this is the safe, conservative estimate!
 
 In general, we can say that **concrete values flow to abstract variables**. Application arguments flow to formal parameters, and concrete return values or function bodies flow to the variables they're assigned to.
 
@@ -142,20 +118,20 @@ In general, we can say that **concrete values flow to abstract variables**. Appl
 ## Sensitivities and polyvariance
 
 > [!note] See also
-> <https://en.wikipedia.org/wiki/Data-flow_analysis#Sensitivities>
+> https://en.wikipedia.org/wiki/Data-flow_analysis#Sensitivities
 
 This analysis has a number of properties:
 
 - It is **flow-insensitive**: if we have an application $(e_{1}^{l_{1}}\ e_{2}^{l_{2}})$, even if our analysis of $l_{1}$ is empty (i.e., it can't take on any lambda values), we still perform analysis of $l_{2}$ anyways. ^70155c
- 	- A *flow-sensitive* analysis would skip analyzing $l_{2}$ if it determines $l_{1}$ to be empty.
- 	- This is because call-by-value (i.e., strict) semantics insists on a left-to-right calling order, which means that a flow-sensitive analysis—an analysis that takes into account order of execution and control flow—should analyze $l_{1}$ first and use that to inform whether it should analyze $l_{2}$.
- 	- By contrast, our *flow-insensitive* analysis ignores the semantics of our language, and analyzes both $l_{1}$ and $l_{2}$ regardless.
- 	- See the notes for ==Exercise== 3.3 on page 204 of the textbook.
+	- A *flow-sensitive* analysis would skip analyzing $l_{2}$ if it determines $l_{1}$ to be empty.
+	- This is because call-by-value (i.e., strict) semantics insists on a left-to-right calling order, which means that a flow-sensitive analysis—an analysis that takes into account order of execution and control flow—should analyze $l_{1}$ first and use that to inform whether it should analyze $l_{2}$.
+	- By contrast, our *flow-insensitive* analysis ignores the semantics of our language, and analyzes both $l_{1}$ and $l_{2}$ regardless.
+	- See the notes for ==Exercise== 3.3 on page 204 of the textbook.
 - It is **path-insensitive**: when we encounter conditionals, the analysis for each branch doesn't depend on or incorporate information about the predicate expression of the conditional.
- 	- From Wikipedia: "A **path-sensitive** analysis computes different pieces of analysis information dependent on the predicates at conditional branch instructions. For instance, if a branch contains a condition `x>0`, then on the *fall-through* path, the analysis would assume that `x<=0` and on the target of the branch it would assume that indeed `x>0` holds."
+	- From Wikipedia: "A **path-sensitive** analysis computes different pieces of analysis information dependent on the predicates at conditional branch instructions. For instance, if a branch contains a condition `x>0`, then on the _fall-through_ path, the analysis would assume that `x<=0` and on the target of the branch it would assume that indeed `x>0` holds."
 - It is **context-insensitive**: the analysis treats all function calls to the same function the same, regardless of where that function is being called. We'll go over this in depth in [[#Context sensitivity k-CFAs and m-CFAs]].
- 	- Note that **monovariance** is another word for context insensitivity, and **polyvariance** is another term for context sensitivity.
- 
+	- Note that **monovariance** is another word for context insensitivity, and **polyvariance** is another term for context sensitivity.
+	
 > [!note] On flow- and context-sensitivity and -insensitivity
 > [[sridharanAliasAnalysisObjectOriented2013|Alias Analysis for Object-Oriented Programs]] provides a more detailed look at flow-sensitivity & -insensitivity and context-sensitivity & -insensitivity.
 
@@ -174,10 +150,7 @@ In the textbook, we keep these things separate. The textbook defines a *monotone
 
 Because of this, we also introduce abstract data values $\hat{d} \in L$, abstract data environments $\hat{\delta} \in Var \to L$, and abstract data caches $\hat{D} \in Lab \to L$.
 
-Now, statements are in the form:
-$$
-(\hat{C}, \hat{D}, \hat{\rho}, \hat{\delta}) \models_{D} e
-$$
+Now, statements are in the form: $$ (\hat{C}, \hat{D}, \hat{\rho}, \hat{\delta}) \models_{D} e $$
 where the $D$ in $\models_{D}$ just means "this has dataflow stuff involved" I guess. We update our rules accordingly:
 
 ![[Screenshot 2024-07-26 at 10.50.16 PM.png]]
@@ -232,36 +205,19 @@ In the literature, context-sensitivity is also referred to as **polyvariance**, 
 
 ## k-CFAs
 
-In a **$k$-CFA analysis**, whenever we come across a function application, we record it in a context $\delta$, which contains the last $k$ function calls. Thus, a context is a sequence of labels of length at most $k$:
-$$
-\delta \in \Delta = Lab^{\leq k}
-$$
-Our abstract environment $\hat{\rho}$ now requires us to provide both a variable *and the context* in order to get the analysis value:
-$$
-\hat{\rho} \in (Var \times \Delta) \to L
-$$
+In a **$k$-CFA analysis**, whenever we come across a function application, we record it in a context $\delta$, which contains the last $k$ function calls. Thus, a context is a sequence of labels of length at most $k$: $$ \delta \in \Delta = Lab^{\leq k} $$
+Our abstract environment $\hat{\rho}$ now requires us to provide both a variable *and the context* in order to get the analysis value: $$ \hat{\rho} \in (Var \times \Delta) \to L $$
 Of course, we need to now store contexts in our analysis too. Indeed, at each subexpression point, we want to store the mapping from all free variables in a term to the (up to) $k$ most recent applications before that variable was bound. Why only free variables, you might ask? We'll get to that soon :)
 
-We call this mapping a **context environment**. The *context environment* $ce \in \mathrm{CEnv}$ will determine the context associated with the current instance of a variable in a subexpression.
-$$
-ce \in Var \to \Delta
-$$
-Our abstract value domain $L$ is now a set of tuples: the abstraction that subexpression could take on, and the local context environment at that subexpression:
-$$
-L = \mathcal{P}(Term \times CEnv)
-$$
+We call this mapping a **context environment**. The *context environment* $ce \in \mathrm{CEnv}$ will determine the context associated with the current instance of a variable in a subexpression. $$ ce \in Var \to \Delta $$
+Our abstract value domain $L$ is now a set of tuples: the abstraction that subexpression could take on, and the local context environment at that subexpression: $$ L = \mathcal{P}(Term \times CEnv) $$
 > [!note] Uniform $k$-CFA analysis vs. $k$-CFA analysis
-> Confusingly, a ==uniform== $k$-CFA analysis differs from a $k$-CFA analysis. In the uniform $k$-CFA analysis, our treatment of the abstract cache mirrors the abstract environment, taking a product of labels and contexts:
-$$
-\hat{C} = (Lab \times \Delta) \to L
-$$
->
+> Confusingly, a ==uniform== $k$-CFA analysis differs from a $k$-CFA analysis. In the uniform $k$-CFA analysis, our treatment of the abstract cache mirrors the abstract environment, taking a product of labels and contexts: $$ \hat{C} = (Lab \times \Delta) \to L $$
+> 
 > However, in a regular $k$-CFA, we have $\hat{C} = (Lab \times CEnv) \to L$. I believe these are functionally equivalent, and just differ in terms of framing? We call the former "uniform" since both the abstract environment and abstract cache use the same precision.
 
-So how do we go about performing this analysis? First, let's look at the notation for our acceptability judgment now:
-$$
-(\hat{C}, \hat{\rho}) \models_{\delta}^{ce} e
-$$
+
+So how do we go about performing this analysis? First, let's look at the notation for our acceptability judgment now: $$ (\hat{C}, \hat{\rho}) \models_{\delta}^{ce} e $$
 Our judgment is now with respect to a context environment $ce$ and a context $\delta$. It's helping to think of these as a sort of "global state" of the algorithm building up constraints; when analyzing subterms of $e$, we will require that judgments with modified $ce$ and $\delta$—based on our current values—of the subterms hold.
 
 Now, let's look at function introduction:
@@ -276,17 +232,17 @@ Let's unpack this rule:
 
 - Let's say $ce$ and $\delta$ are the current environment and context as we're performing this analysis.
 - Checking the body $t_{0}^{l_{0}}$ involves a new context environment $ce_{0}'$ and a new context $\delta_{0}$.
- 	- $\delta_{0}$ now contains $l$, the most recent application.
-  		- $\lceil \delta, l \rceil_{k}$ is their notation for "$\delta$ with $l$ appended, then truncated to the most recent $k$."
- 	- $ce_{0}'$ now maps from $x$, the newly bound variable, to the context at this point.
-  		- Remember that $ce_{0}$ is the mapping for all free variables in the lambda.
-  		- $x$ isn't free in the lambda term; $ce_{0}'$ thus provides a mapping for $x$.
-  		- Remember that the meaning of a variable being in an environment is "whatever the call stack was up to when this variable was bound"
-  		- We preserve free variables because inside $t_{0}^{l_{0}}$, $x$ is now free, and we want to retain that information as-is for $x$.
+	- $\delta_{0}$ now contains $l$, the most recent application.
+		- $\lceil \delta, l \rceil_{k}$ is their notation for "$\delta$ with $l$ appended, then truncated to the most recent $k$."
+	- $ce_{0}'$ now maps from $x$, the newly bound variable, to the context at this point.
+		- Remember that $ce_{0}$ is the mapping for all free variables in the lambda.
+		- $x$ isn't free in the lambda term; $ce_{0}'$ thus provides a mapping for $x$.
+		- Remember that the meaning of a variable being in an environment is "whatever the call stack was up to when this variable was bound"
+		- We preserve free variables because inside $t_{0}^{l_{0}}$, $x$ is now free, and we want to retain that information as-is for $x$.
 - Remember the rule-of-thumb for how constraints propagate: **argument flows to parameter**, **value of body flows to application**:
- 	- Argument flows to parameter: $\hat{C}(l_{2}, \rho) \subseteq \hat{\rho}(x, \delta_{0})$
- 	- Body flows to application: $\hat{C}(l_{0}, \delta_{0}) \subseteq \hat{C}(l, \delta)$
- 	- Be careful about threading the right arguments in the right places!
+	- Argument flows to parameter: $\hat{C}(l_{2}, \rho) \subseteq \hat{\rho}(x, \delta_{0})$
+	- Body flows to application: $\hat{C}(l_{0}, \delta_{0}) \subseteq \hat{C}(l, \delta)$
+	- Be careful about threading the right arguments in the right places!
 
 And for completeness, here are the other two rules:
 
@@ -336,9 +292,9 @@ struct F {
 }
 
 impl F {
- fn call(&self) -> u32 {
-  self.x + 1
- }
+	fn call(&self) -> u32 {
+		self.x + 1
+	}
 }
 
 let x = 4;
@@ -391,7 +347,6 @@ With this new spec, we can define a syntax-directed constraint generation algori
 ![[Screenshot 2024-07-27 at 8.47.04 PM.png]]
 
 > [!note] Notation notes
->
 > - We read $\{ t \} \subseteq a \implies b \subseteq c$ as $(\{ t \} \subseteq a \implies b) \subseteq c$.
 > - What does it mean to have an implication be a subset of another set? The next section will clarify this!
 
@@ -400,25 +355,25 @@ With this new spec, we can define a syntax-directed constraint generation algori
 How do we solve these constraints? There are two broad solutions:
 
 - **Fixed-point**, complexity $O(n^5)$ over size of the expression $n$.
- 	- On each iteration, we update the abstract cache as follows:
-  		- For every label $l$ in the environment
-  		- Get every constraint of the form $ls \subseteq C(l)$.
-  		- $ls$ will have one of two forms. We must transform $ls$ into a set of terms:
-   			- If $ls$ is a set $\{ t \}$, return $\{ t \}$.
-   			- If $ls$ is $C(l)$, this means $\hat{C}(l)$.
-   			- If $ls$ is of the form $\{ t \} \subseteq lhs \implies rhs$:
-    				- If $\{ t \} \subseteq lhs$, transform $rhs$.
-    				- Otherwise, return $\varnothing$.
-    				- When we say "transform," we mean "do the same pattern matching we just did on $ls$."
-   			- Remember that we have to do this because we have that "implication subset" notation going on above.
-  		- Combine all transformed $ls$ items to yield $C(l)$.
- 	- Do the same with the abstract environment.
+	- On each iteration, we update the abstract cache as follows:
+		- For every label $l$ in the environment
+		- Get every constraint of the form $ls \subseteq C(l)$.
+		- $ls$ will have one of two forms. We must transform $ls$ into a set of terms:
+			- If $ls$ is a set $\{ t \}$, return $\{ t \}$.
+			- If $ls$ is $C(l)$, this means $\hat{C}(l)$.
+			- If $ls$ is of the form $\{ t \} \subseteq lhs \implies rhs$:
+				- If $\{ t \} \subseteq lhs$, transform $rhs$.
+				- Otherwise, return $\varnothing$.
+				- When we say "transform," we mean "do the same pattern matching we just did on $ls$."
+			- Remember that we have to do this because we have that "implication subset" notation going on above.
+		- Combine all transformed $ls$ items to yield $C(l)$.
+	- Do the same with the abstract environment.
 - [[repsProgramAnalysisGraph1998|Graph reachability]]****, complexity $O(n^3)$. ^203nd2
- 	- The nodes are all the variables and labels. Each node $n$ contains the analysis, initially initialized to every term mentioned in a $\{ t \} \subseteq n$ constraint.
- 	- A constraint $p_{1} \subseteq p_{2}$ creates an edge $p_{1} \to p_{2}$
-  		- This edge is traversed only whenever $p_{1}$ has a new term.
- 	- A constraint $\{ t \} \subseteq p \implies p_{1} \subseteq p_{2}$ creates edges $p_{1} \to p_{2}$, $p \to p_{2}$.
-  		- These edges are only traversed if $\{ t \}$ is in the analysis for $p$.
+	- The nodes are all the variables and labels. Each node $n$ contains the analysis, initially initialized to every term mentioned in a $\{ t \} \subseteq n$ constraint.
+	- A constraint $p_{1} \subseteq p_{2}$ creates an edge $p_{1} \to p_{2}$
+		- This edge is traversed only whenever $p_{1}$ has a new term.
+	- A constraint $\{ t \} \subseteq p \implies p_{1} \subseteq p_{2}$ creates edges $p_{1} \to p_{2}$, $p \to p_{2}$.
+		- These edges are only traversed if $\{ t \}$ is in the analysis for $p$.
 
 Either of these algorithms produce the **least** solution to $\mathcal{C}_{*}[\![e_{*}]\!]$, and thus the **least** $(\hat{C}, \hat{\rho})$ that satisfies $(\hat{C}, \hat{\rho}) \models e_{*}$.
 

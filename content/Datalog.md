@@ -103,7 +103,7 @@ disconnected(X, Y) :- not path(X, Y).
 Well, intuitively, we can just compute `path` to fixpoint first, then compute `disconnected` using that. This is called **stratified negation**. Basically, we separate the computation of `path` and `disconnected` into separate **strata**. We're basically dividing our Datalog program into little sub-programs! The former strata is computed first, then the latter. The specific rules are:
 
 - All rules that share a head relation are in the same stratum.
- - The stratum containing rules with `R` in the head *defines* `R`.
+	- The stratum containing rules with `R` in the head *defines* `R`.
 - A rule `... :- S(..), ...` must be in *the same or higher* stratum as the one that defines `S`.
 - A rule `... :- not S(..), ...` must be in a *strictly higher* stratum that the one that defines `S`.
 
@@ -135,10 +135,7 @@ Here, instead of talking in terms of lattices, we're talking in terms of **semi-
 
 ### Existentials, ADTs, EGDs, TGDs
 
-Can we model this in Datalog?
-$$
-\forall x. person(x) \implies \exists y. parent(x, y)
-$$
+Can we model this in Datalog? $$ \forall x. person(x) \implies \exists y. parent(x, y) $$
 No. What would it mean to put an existential in the head of our rule?
 
 There's an algorithm called **[the chase](https://en.wikipedia.org/wiki/Chase_(algorithm))** from database theory that's a kind of generalization of Datalog. It has two kinds of "rules" which it calls dependencies:

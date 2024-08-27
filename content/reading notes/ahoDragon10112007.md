@@ -22,7 +22,7 @@ scheduled: 2024-08-11
 # §10. Instruction-level parallelism
 
 > [!note] See also
-> <https://en.wikipedia.org/wiki/Automatic_parallelization>
+> https://en.wikipedia.org/wiki/Automatic_parallelization
 
 This section has to do with achieving parallelism *within a single CPU core*.
 
@@ -54,9 +54,9 @@ Some extra notes:
 - See also [[sridharanAliasAnalysisObjectOriented2013|Pointer-alias analysis]] and interprocedural analysis
 - ILP encourages using as many registers as possible to reduce data dependences. But generally we want to minimize number of registers used.
 - We can do *speculative execution*, running an extra instruction in parallel if the resource is available, in case a branch is/n't taken.
- 	- Prefetching instruction
- 	- Poison bits: if illegal memory is accessed, only raise exception if it's *used*.
- 	- Predicated execution: instructions that add extra predicate operand, only executed if predicate is true.
+	- Prefetching instruction
+	- Poison bits: if illegal memory is accessed, only raise exception if it's *used*.
+	- Predicated execution: instructions that add extra predicate operand, only executed if predicate is true.
 
 For each instruction, we associate it with a *resource-reservation table* $RT_{t}$. This table indicates what resources an instruction uses, and during which clocks. For example, if an instruction uses the ALU for all three clocks, then $RT_{t}[i, \mathbf{alu}] = 1$ for $i = 0, 1, 2$.
 
@@ -105,7 +105,7 @@ In this algorithm, operations from one iteration of a loop can't overlap with an
 ## Software pipelining
 
 > [!note] See also
-> <https://en.wikipedia.org/wiki/Software_pipelining>
+> https://en.wikipedia.org/wiki/Software_pipelining
 
 *Do-all* loops are loops where iterations are completely independent from one-another. It's common in APL-style code. **Software pipelining** schedules an entire loop (i.e., all of its iterations) all at once, taking advantage of parallelism *across iterations*.
 
@@ -113,7 +113,7 @@ Let's say we have the following code:
 
 ```c
 for (i = 0; i < n; i++)
- D[i] = A[i]*B[i] + c;
+	D[i] = A[i]*B[i] + c;
 ```
 
 We can pipeline our instructions (assuming `MUL` takes three cycles, everything else takes one):
@@ -143,8 +143,8 @@ There are two code transformations: *affine partitioning* and *blocking*. Both o
 
 > [!note] SPMD
 > Throughout this chapter the book uses the term **SPMD**: single program, multiple data. Basically, multiple processors cooperate to simultaneously execute the same program at independent points (e.g., different for loop iterations). In SIMD, this isn't the case.
->
-> See <https://en.wikipedia.org/wiki/Single_program,_multiple_data> also.
+> 
+> See https://en.wikipedia.org/wiki/Single_program,_multiple_data also.
 
 ## On parallelism
 
@@ -152,13 +152,10 @@ There are two code transformations: *affine partitioning* and *blocking*. Both o
 
 Distributed memory has hierarchical memory all the way down. Symmetric multiprocessors share memory at lowest level.
 
-To estimate parallelizable code, we measure **parallelism coverage** (% of computation in parallel) and **granularity of parallelism** (amount of parallel execution before sync is needed).
+To estimate parallelizable code, we measure **parallelism coverage** (% of computation in parallel) and **granularity of parallelism** (amount of parallel execution before sync is needed). 
 
 > [!note] Amdahl's Law
-> If $f$ is the fraction of the code parallelized, and it's run on $p$-processor machine with no communication or overhead, speedup is
-$$
-\frac{1}{(1 - f) + (f / p)}
-$$
+> If $f$ is the fraction of the code parallelized, and it's run on $p$-processor machine with no communication or overhead, speedup is $$ \frac{1}{(1 - f) + (f / p)} $$
 
 Normally, we can get lots of parallelism out of loops. A *kernel* is the core computation of a program, which may involves lots of nested loops!
 
@@ -171,15 +168,15 @@ At a high level, *affine transform theory* involves expressing loops in terms of
 When considering the problem of optimizing loops with array accesses, we formulate the problem in terms of *multidimensional spaces* and *affine mappings between these spaces*. In particular, we consider three spaces:
 
 - The *iteration space*, the set of combinations of values taken on by the loop indices.
- 	- For $d$ nested loops, we have a $d$-dimensional space
+	- For $d$ nested loops, we have a $d$-dimensional space
 - The *data space*, the set of array elements accessed
- 	- e.g., array index $1, \dots, 99$
- 	- $n$-dimensional arrays are treated as such.
- 	- We calculate the index via an *affine array-index function*, an affine function operating on a set of loop indices.
+	- e.g., array index $1, \dots, 99$
+	- $n$-dimensional arrays are treated as such.
+	- We calculate the index via an *affine array-index function*, an affine function operating on a set of loop indices.
 - The *processor space*, the set of processors in the system.
- 	- Before parallelization, we assume we have infinite virtual processors.
- 	- Organize them in a multidimensional space, one dimension for each loop in the nest we want to parallelize.
- 	- Block them together to map them to physical processors.
+	- Before parallelization, we assume we have infinite virtual processors.
+	- Organize them in a multidimensional space, one dimension for each loop in the nest we want to parallelize.
+	- Block them together to map them to physical processors.
 
 This kind of analysis is also called **polyhedral analysis**, since each space corresponds to some polyhedron with the appropriate amount of dimensions for each space.
 
@@ -191,14 +188,11 @@ How do we represent these nested loops as a mathematical set?
 
 ```c
 for (int i = 0; i <= 5; i++)
- for (int j = i; j <= 7; j++)
-  Z[j, i] = 0;
+	for (int j = i; j <= 7; j++)
+		Z[j, i] = 0;
 ```
 
-In general, an iteration space can be represented as:
-$$
-\{ \vec{i} \in \mathbb{Z}^d \mid \mathbf{B}\vec{i} + \vec{b} \geq \mathbf{0} \}
-$$
+In general, an iteration space can be represented as: $$ \{ \vec{i} \in \mathbb{Z}^d \mid \mathbf{B}\vec{i} + \vec{b} \geq \mathbf{0} \} $$
 where $\mathbf{B}$ is some $d \times d$ matrix and $\vec{b}$ is an integer vector of length $d$. Each selection of constraints for $i$ and $j$ results in different values for $\mathbf{B}$ and $\vec{b}$. For the 2D case, we need four constraints of the form $ui + vj + w \geq 0$; $[u, v]$ is a row in $\mathbf{B}$ and $w$ is a row in $\vec{b}$. We can get these four constraints from the four constraints imposed by our loops: each of the starting and ending values of $i$ and $j$.
 
 What if we wanted to iterate through this space using $j$ first? Well, this set represents some $d$-dimensional polyhedron, consisting of some points $(i_{k}, j_{k})$. If we *project* this shape, we can fix $j_{k}$ and re-express $i_k$ in terms of $j$. ^0c2e21
@@ -218,21 +212,12 @@ Sparse matrix representations that require multiple chained lookups (e.g., `X[Y[
 
 There are a few kinds of reuses: *self* (iterations reusing data come from same static access, e.g., `Z[j + 1] = Z[j] + Z[j + 2]`) vs *group*, *temporal* (exact same location is referenced over time), *spatial* (same cache line is reference). We can use linear algebra to get reuse info from our affine array acceses.
 
-The *rank* of $\mathbf{F}$—the number of linearly independent rows—tells us the dimension of our array access. Two iterations refer to the same array element if the difference of their loop index vectors is in the null space of $\mathbf{F}$:
-$$
-\mathbf{F}(\vec{i} - \vec{i'}) = \vec{0}
-$$
-To discover spatial reuse, drop the last row of $\mathbf{F}$; if the rank of the new matrix is less than loop nest depth, there's opportunity for spatial locality. Group reuse requires that:
-$$
-\mathbf{F}\vec{i_{1}} + \vec{f_{1}} = \mathbf{F}\vec{i_{2}} + \vec{f_{2}}
-$$
+The *rank* of $\mathbf{F}$—the number of linearly independent rows—tells us the dimension of our array access. Two iterations refer to the same array element if the difference of their loop index vectors is in the null space of $\mathbf{F}$: $$ \mathbf{F}(\vec{i} - \vec{i'}) = \vec{0} $$
+To discover spatial reuse, drop the last row of $\mathbf{F}$; if the rank of the new matrix is less than loop nest depth, there's opportunity for spatial locality. Group reuse requires that: $$ \mathbf{F}\vec{i_{1}} + \vec{f_{1}} = \mathbf{F}\vec{i_{2}} + \vec{f_{2}} $$
 
-### Array data-dependence analysis
+### Array data-dependence analysis.
 
-We solve the following equation with ILP:
-$$
-\mathbf{F}_{1} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}} \vec{i_{2}} + \vec{f_{2}}
-$$
+We solve the following equation with ILP: $$ \mathbf{F}_{1} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}} \vec{i_{2}} + \vec{f_{2}} $$
 We can use Diophantine equations as a heuristic to see if we need to throw ILP at the problem. An equation $a_{1}x_{1} + \cdots + a_{n}x_{n} = c$ has a solution iff $c \bmod gcd(a_{i}) \equiv 0$.
 
 ## Finding sync-less, space-partitioning parallelism
@@ -243,19 +228,16 @@ Let's say we have a loop nest with $k$ degrees of parallelism—$k$ loops with n
 
 To require no communication between processes, anything with a data dependence has to be assigned to the same processor. These are *space-partition constraints*. A space partition is also a matrix $\mathbf{C}$ and a vector $\vec{c}$ that act on a loop iteration. We want to choose partitions that maximize parallelism: the *rank* of $\mathbf{C}$.
 
-For each statement, we create one partition. For every two statements $s_{1}$ and $s_{2}$ that have accesses sharing a dependence, the following **space-partition constraint** must hold:
-$$
-\mathbf{F_{1}} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}}\vec{i_{2}} + f_{2} \implies \mathbf{C_{1}} \vec{i_{1}} + \vec{c_{1}} = \mathbf{C_{2}} \vec{i_{2}} + \vec{c_{2}}
-$$
+For each statement, we create one partition. For every two statements $s_{1}$ and $s_{2}$ that have accesses sharing a dependence, the following **space-partition constraint** must hold: $$ \mathbf{F_{1}} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}}\vec{i_{2}} + f_{2} \implies \mathbf{C_{1}} \vec{i_{1}} + \vec{c_{1}} = \mathbf{C_{2}} \vec{i_{2}} + \vec{c_{2}} $$
 That is, if they access the same item, they must map to the same processor.
 
 > [!example]
 > For this loop nest:
->
+> 
 > ![[Screenshot 2024-08-13 at 2.59.28 PM.png]]
->
+> 
 > we have these constraints:
->
+> 
 > ![[Screenshot 2024-08-13 at 2.59.50 PM.png]]
 
 The high-level overview of the algorithm is:
@@ -292,8 +274,8 @@ We can use **loop fission** to break up loops and introduce opportunities for pa
 
 ```c
 for (i=1; i<=n; i++) {
- X[i] = Y[i] + Z[i]; /* (s1) */
- W[A[i]] = X[i]; /* (s2) */
+	X[i] = Y[i] + Z[i]; /* (s1) */
+	W[A[i]] = X[i]; /* (s2) */
 }
 ```
 
@@ -301,11 +283,11 @@ In this code, `s1` is parallelizable but `s2` isn't, since we have no idea what 
 
 ```c
 for (i=1; i<=n; i++) {
- X[i] = Y[i] + Z[i]; /* (s1) */
+	X[i] = Y[i] + Z[i]; /* (s1) */
 }
 
 for (i=1; i<=n; i++) {
- W[A[i]] = X[i]; /* (s2) */
+	W[A[i]] = X[i]; /* (s2) */
 }
 ```
 
@@ -316,7 +298,6 @@ To figure out where we can do loop fission, we look at a [[ferranteProgramDepend
 The algorithm is as follows:
 
 > [!important] Algorithm for simple parallelization with synchronization
->
 > 1. Create the PDG and partition nodes into **strongly connected components** (SCCs): the maximal subgraph of the original where every node in the subgraph can reach every other node.
 > 2. Within each SCC, do as much loop fission as possible in topological order.
 > 3. Apply the algorithm from the previous section on each SCC. Insert sync barriers before and after each parallelized SCC.
@@ -334,8 +315,8 @@ Consider this loop that sums the `i`th row of `Y` and adds it to `X[i]`:
 
 ```c
 for (i = 1;`i <= m; i++)
- for (j = 1; j <= n; j++)
-  X[i] = X[i] + Y[i,j];
+	for (j = 1; j <= n; j++)
+		X[i] = X[i] + Y[i,j];
 ```
 
 There are two ways of parallelizing this loop. As we've seen before, in simple parallelism, we can assign different processors for different values of `i`. However, we can also **pipeline** execution like so:
@@ -354,30 +335,27 @@ A nest is **fully permutable** if the loops can be permuted arbitrarily (modulo 
 
 ```c
 for (i = 0; i <= m; i++)
- for (j = 0; j <= n; j++)
-  X[j+1] = 1/3 * (X[j] + X[j+1] + X[j+2])
+	for (j = 0; j <= n; j++)
+		X[j+1] = 1/3 * (X[j] + X[j+1] + X[j+2])
 ```
 
 Even though changing the order is still valid, it would change the semantics of our program. We're iterating in column- instead of row-order. By contrast, this loop:
 
 ```c
 for (i = 0; i <= m; i++)
- for (j = i; j <= i+n; j++)
-  X[j-i+1] = 1/3 * (X[j-i] + X[j-i+1] + X[j-i+2])
+	for (j = i; j <= i+n; j++)
+		X[j-i+1] = 1/3 * (X[j-i] + X[j-i+1] + X[j-i+2])
 ```
 
 is semantically equivalent to:
 
 ```c
 for (j = 0; j <= m+n; j++)
- for (i = max(0,j); i <= min(m,j), i++)
-  X[j-i+1] = 1/3 * (X[j-i] + X[j-i+1] + X[j-i+2])
+	for (i = max(0,j); i <= min(m,j), i++)
+		X[j-i+1] = 1/3 * (X[j-i] + X[j-i+1] + X[j-i+2])
 ```
 
-Formally, time-partition constraints are more relaxed than space-partition constraints. For a statement $s_{1}$ and $s_{2}$, where $s_{2}$ is data-dependent on $s_{1}$, the following must hold:
-$$
-\mathbf{F_{1}} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}}\vec{i_{2}} + f_{2} \implies \mathbf{C_{1}} \vec{i_{1}} + \vec{c_{1}} \leq \mathbf{C_{2}} \vec{i_{2}} + \vec{c_{2}}
-$$
+Formally, time-partition constraints are more relaxed than space-partition constraints. For a statement $s_{1}$ and $s_{2}$, where $s_{2}$ is data-dependent on $s_{1}$, the following must hold: $$ \mathbf{F_{1}} \vec{i_{1}} + \vec{f_{1}} = \mathbf{F_{2}}\vec{i_{2}} + f_{2} \implies \mathbf{C_{1}} \vec{i_{1}} + \vec{c_{1}} \leq \mathbf{C_{2}} \vec{i_{2}} + \vec{c_{2}} $$
 Here, we only require that execution order is preserved.
 
 > [!important] Algorithm to solve these constraints
@@ -388,13 +366,12 @@ If this has $k$ independent solutions, we can create a loop nest with $k$ outerm
 There's some other stuff we can do too:
 
 - **Wavefronting**. If we have $k$ outermost fully permutable loops, we can generate $k - 1$ inner parallelizable loops. We create a new index variable $i'$ that combines the indices in the outer $k$-depth nest. This combination can be e.g., sum. Then, if iterate through $i'$ in sequential order, the first $k - 1$ loops within each partition are guaranteed to be parallelizable. We're basically moving diagonally along our iteration space! Iterations within iterations of the $i'$ loop have no data dependence.
- 	- Apparently pipelining is still better tho
+	- Apparently pipelining is still better tho
 - **Blocking**. As mentioned before, blocking is subdividing our iteration space for the sake of locality and reducing sync. We can assign processors to blocks.
 
 We can roll all this together to produce an **algorithm for finding parallelism with minimum synchronization**:
 
 > [!important] Algorithm for parallelism with minimum synchronization
->
 > 1. Use algorithm from [[#Finding sync-less, space-partitioning parallelism]] to find maximum parallelism requiring no synchronization.
 > 2. Within each space partition from the above step, use algorithm from [[#Synchronization between parallel loops]] to find maximum degree of parallelism with $O(1)$ synchronizations.
 > 3. Within each partition above, use this algorithm to find pipelined parallelism, then apply the [[#Synchronization between parallel loops]] algorithm to each partition assigned to each processor, or the body of the sequential loop if no pipelining is found. This finds parallelism with $O(n)$ synchronizations.
@@ -414,33 +391,33 @@ To accomplish interleaving, we can use *blocking* to introduce temporal locality
 
 ```c
 for (i = 0; i < n; i++)
- for (j = 0; j < n; j++)
-  todo();
+	for (j = 0; j < n; j++)
+		todo();
 
 // into
 
 for (ii = 0; i < n; ii += 4)
- for (j = 0; j < n; j++)
-  for (i = ii; i < min(n, ii + 4); i++)
-   todo();
+	for (j = 0; j < n; j++)
+		for (i = ii; i < min(n, ii + 4); i++)
+			todo();
 ```
 
 This is called **stripmining**. Alternatively, if we have a loop with multiple statements, which might be loops themselves, we can distribute stripmining across these statements so that within each substatement/loop, reuse happens sooner:
 
 ```c
 for (i = 0; i < n; i++) {
- // s1
- // s2
+	// s1
+	// s2
 }
 
 // into
 
 for (ii = 0; i < n; ii += 4) {
- for (i = ii; i < min(n, ii + 4), i++)
-  // s1
+	for (i = ii; i < min(n, ii + 4), i++)
+		// s1
 
- for (i = ii; i < min(n, ii + 4), i++)
-  // s2
+	for (i = ii; i < min(n, ii + 4), i++)
+		// s2
 }
 ```
 
@@ -449,7 +426,6 @@ for (ii = 0; i < n; ii += 4) {
 With these pieces in place, we can do the **full algorithm for parallelization and locality optimization!**
 
 > [!important] The Big Algorithm
->
 > 1. Introduce parallelism and optimize temporal locality of results with the full algorithm from [[#Pipelining]]
 > 2. Contract arrays where possible.
 > 3. Determine iteration subspace that might share data or cache lines with technique from [[#Data reuse]].
@@ -459,12 +435,12 @@ With these pieces in place, we can do the **full algorithm for parallelization a
 ## Other uses for affine transforms
 
 - **Optimizing for distributed memory machines**. If you can only communicate with other machines by sending messages, processors need big independent units of compilation, which you can get with [[#Finding sync-less, space-partitioning parallelism]]
- 	- Also have to deal with generating communication code (in or out of sync points? how often?), allocating the right amount of memory (via [[#^0c2e21|projection]])
- 	- Embedded systems with coprocessors, etc.
+	- Also have to deal with generating communication code (in or out of sync points? how often?), allocating the right amount of memory (via [[#^0c2e21|projection]])
+	- Embedded systems with coprocessors, etc.
 - **Multi-instruction-issue processors**. How can we facilitate [[#Software pipelining]] with these techniques?
- 	- > "As discussed in Section 10.5, the performance of a software-pipelined loop is limited by two factors: cycles in precedence constraints and the usage of the critical resource."
- 	- Loop transforms can create innermost parallelizable loops, eliminating precedence cycles
- 	- Improve usage balance of resource inside a loop.
-  		- > "Suppose one loop only uses the adder, and another uses only the multiplier. Or, suppose one loop is memory bound and another is compute bound. It is desirable to fuse each pair of loops in these examples together so as to utilize all the functional units at the same time."
+	- > "As discussed in Section 10.5, the performance of a software-pipelined loop is limited by two factors: cycles in precedence constraints and the usage of the critical resource."
+	- Loop transforms can create innermost parallelizable loops, eliminating precedence cycles
+	- Improve usage balance of resource inside a loop.
+		- > "Suppose one loop only uses the adder, and another uses only the multiplier. Or, suppose one loop is memory bound and another is compute bound. It is desirable to fuse each pair of loops in these examples together so as to utilize all the functional units at the same time."
 - **Vectorization and SIMD**. Lots of similarity with [[#Locality optimizations]], though also have to deal with alignment and needing to swizzle non-contiguous data.
 - **Prefetching**. Using [[#Data reuse]] analysis to figure out when cache misses are likely.

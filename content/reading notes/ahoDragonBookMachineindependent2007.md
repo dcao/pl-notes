@@ -21,13 +21,13 @@ scheduled: 2024-07-18
 ---
 > [!summary]
 > If backwards, $\mathrm{IN}[B] = f_{s}(\mathrm{OUT}[B])$, $\mathrm{OUT}[B] = \land_{S, succ(B)}\ \mathrm{IN}[S]$
->
+> 
 > **Kinds of analyses**:
 > Reaching: what definitions are relevant at program point?
 > Availability: Has an expression as defined at this point been used before? Is it *available* for use?
 > Liveness: Will an expression as defined at this point be used again later? Is it still *alive* and will be used later?
 > Constant propagation: Each var is $\top = UNDEF$, $\bot = NAC$, or a constant value
->
+> 
 > **Optimizations**:
 > Constant folding: constant propagation
 > Common subexpression elimination, code motion: partial redundancy elimination
@@ -50,7 +50,7 @@ Using high-level languages often introduces redundant operations. For example, i
 - **Dead-code elimination**: if a statement computes values that are never used, it can just be removed. This is why copy propagation is important; if we have `x = v; y = 2 * x`, with copy propagation + dead-code elim we can remove `x` entirely!
 - **Constant folding**: deducing at compile time that an expression's value is constant and using that constant value
 - **Code motion**: If an expression in a loop yields the same result on every iteration, it's taken out of the loop ^9d6c9d
- 	- e.g., `while (i <= x - 2)` becomes `t = x - 2; while (i <= t)`
+	- e.g., `while (i <= x - 2)` becomes `t = x - 2; while (i <= t)`
 - **Induction variables & strength reduction**: if a variable changes by a constant `c` on each reassignment, it's an induction variable. Strength reduction is replacing an expensive op (e.g., multiplication) with a cheaper one (e.g., addition).
 
 # Intro to dataflow analysis
@@ -87,40 +87,25 @@ Transfer functions are constraints on dataflow values based on the semantics of 
 
 Information can propagate in one of two directions:
 
-- **Forward-flow problem**: the transfer function operates on the pre-state, returning to the post-state:
-
-$$
-\mathrm{OUT}[s] = f_{s}(\mathrm{IN}[s])
-$$
-
-- **Backward-flow problem**: the transfer function converts a dataflow value after the statement to a new one before the statement:
-
-$$
-\mathrm{IN}[s] = f_{s}(\mathrm{OUT}[s])
-$$
+- **Forward-flow problem**: the transfer function operates on the pre-state, returning to the post-state: $$ \mathrm{OUT}[s] = f_{s}(\mathrm{IN}[s]) $$
+- **Backward-flow problem**: the transfer function converts a dataflow value after the statement to a new one before the statement: $$ \mathrm{IN}[s] = f_{s}(\mathrm{OUT}[s]) $$
 
 ### Control-flow constraints
 
-Control-flow constraints on dataflow values are derived from the flow of control. For instance, within a basic block, since statements just execute one after another, we know that the control-flow value out of some statement $s_{i}$ must be the same as the value into the following statement $s_{i + 1}$:
-$$
-\mathrm{IN}[s_{i + 1}] = \mathrm{OUT}[s_{i}]
-$$
+Control-flow constraints on dataflow values are derived from the flow of control. For instance, within a basic block, since statements just execute one after another, we know that the control-flow value out of some statement $s_{i}$ must be the same as the value into the following statement $s_{i + 1}$: $$ \mathrm{IN}[s_{i + 1}] = \mathrm{OUT}[s_{i}] $$
 
-Between basic blocks, since basic blocks might have multiple predecessors, often we will do union operations or things like that, e.g.,
-$$
-\mathrm{IN}[B] = \bigcup_{\text{P a predecessor of B}} \mathrm{OUT}[P]
-$$
+Between basic blocks, since basic blocks might have multiple predecessors, often we will do union operations or things like that, e.g., $$ \mathrm{IN}[B] = \bigcup_{\text{P a predecessor of B}} \mathrm{OUT}[P] $$
 
 ## Dataflow schemas on basic blocks
 
 Since the goings-on within basic blocks are pretty simple, we can define the above operations on basic blocks as a whole:
 
 - $\mathrm{IN}[B] = \mathrm{IN}[s_{1}]$, and $\mathrm{OUT}[B] = \mathrm{OUT}[s_{n}]$
- 	- This is useful for writing control flow constraints between basic blocks.
- 	- We write the constraints acting on basic blocks, then rewrite them to reference statements.
+	- This is useful for writing control flow constraints between basic blocks.
+	- We write the constraints acting on basic blocks, then rewrite them to reference statements.
 - Transfer functions can operate on basic blocks.
- 	- In forward direction: $\mathrm{OUT}[B] = f_{B}(\mathrm{IN}[B])$, where $f_{B} = f_{s_{n}} \circ \cdots \circ f_{s_{1}}$
- 	- or in backward direction: $\mathrm{IN}[B] = f_{B}(\mathrm{OUT}[B])$, where $f_{B} = f_{s_{1}} \circ \cdots \circ f_{s_{n}}$
+	- In forward direction: $\mathrm{OUT}[B] = f_{B}(\mathrm{IN}[B])$, where $f_{B} = f_{s_{n}} \circ \cdots \circ f_{s_{1}}$
+	- or in backward direction: $\mathrm{IN}[B] = f_{B}(\mathrm{OUT}[B])$, where $f_{B} = f_{s_{1}} \circ \cdots \circ f_{s_{n}}$
 
 These equations normally don't have a unique solution. But we want to find the most "precise" solution.
 
@@ -147,15 +132,12 @@ So how might we write the equations for this? First, let's look at the transfer 
 d0: u = v + w
 ```
 
-This statement "generates" a definition $d_{0}$ of `u` and "kills" all other definitions of the program that define `u`, whether before *or after* this point. Remember that the dataflow value of each program point is the set of definitions that are live at a program point, for all variables. After this statement is executed, $d_{0}$ should be added to the dataflow value, while all other definitions that define `u` should be killed. We encode this intuition as follows:
-$$
-f_{d}(x) = gen_{d} \cup (x - kill_{d})
-$$
+This statement "generates" a definition $d_{0}$ of `u` and "kills" all other definitions of the program that define `u`, whether before *or after* this point. Remember that the dataflow value of each program point is the set of definitions that are live at a program point, for all variables. After this statement is executed, $d_{0}$ should be added to the dataflow value, while all other definitions that define `u` should be killed. We encode this intuition as follows: $$ f_{d}(x) = gen_{d} \cup (x - kill_{d}) $$
 where $gen_{d}$ is the set of definitions *generated* by this statement—in this case, $\{ d_{0} \}$—while $kill_{d}$ is the set of definitions killed by this statement—any prior definition that defines `u`.
 
 > [!note]
 > The concept of $gen$ and $kill$ sets occurs a lot in other contexts:
->
+> 
 > - As $ref$ and $def$ in [[2024-04-16 • CS 294, 13Tu – Program Slicing]]
 > - As $use$ and $def$ in [[ferranteProgramDependenceGraph1987|The program dependence graph and its use in optimization]], particularly in the context of *def-use chains*
 
@@ -185,10 +167,7 @@ d2: a = 4  // {d2} {d1}
            // kill: {d2} cup {d1}         = {d1, d2}
 ```
 
-For our control-flow equations, we do:
-$$
-\mathrm{IN}[B] = \bigcup_{\text{P a predecessor of B}} \mathrm{OUT}[P]
-$$
+For our control-flow equations, we do: $$ \mathrm{IN}[B] = \bigcup_{\text{P a predecessor of B}} \mathrm{OUT}[P] $$
 If a basic block has two predecessors, the definitions of *both* basic blocks *may* reach this one. Union is called the **meet operator** in dataflow schemas, which is the operator used to create a summary of contributions from different paths at the confluence of those paths.
 
 Thus, the summary of our equations is as follows: $$ \begin{aligned}
@@ -204,7 +183,7 @@ We can find a solution to this with an iterative algorithm that just repeatedly 
 ### Liveness analysis
 
 > [!note] See also
-> <https://en.wikipedia.org/wiki/Live-variable_analysis>
+> https://en.wikipedia.org/wiki/Live-variable_analysis
 
 An example of a backward-flow dataflow problem. In *liveness analysis*—specifically, live variable analysis—we want to know: given a variable `x` and a program point $p$, does the value of `x` at $p$ get used later on in the program? If so, it is *live* at $p$. Otherwise, it's *dead*.
 
@@ -226,18 +205,11 @@ We include `b` and `c` into the *gen* set, since they've been used before they'v
 
 However, `a`, `b`, and `c` are all in the *kill* set, since they're all defined within this basic block. When propagating backwards, we want to remove everything in the *kill* set—removing everything that has been defined in this basic block—but then add everything in the *gen* set—adding everything where the use is before the definition, meaning the variable is live before this basic block, since we know for sure it is used within the basic block but before a re-definition.
 
-We encode this intuition as follows:
-$$
-\mathrm{IN}[B] = gen_{B} \cup (\mathrm{OUT}[B] - kill_{B})
-$$
-
+We encode this intuition as follows: $$ \mathrm{IN}[B] = gen_{B} \cup (\mathrm{OUT}[B] - kill_{B}) $$
 - $gen_{B}$ is the set of variables used in $B$ ==before any assignment in that basic block==.
 - $kill_{B}$ is the set of variables defined in $B$.
 
-we also include the base case $\mathrm{IN}[\mathrm{EXIT}] = \varnothing$, and the control flow equation:
-$$
-\mathrm{OUT}[B] = \bigcup_{\text{S a successor of B}} \mathrm{IN}[S]
-$$
+we also include the base case $\mathrm{IN}[\mathrm{EXIT}] = \varnothing$, and the control flow equation: $$ \mathrm{OUT}[B] = \bigcup_{\text{S a successor of B}} \mathrm{IN}[S] $$
 In the algorithm, we calculate $\mathrm{OUT}$ before $\mathrm{IN}$.
 
 ### Available expressions
@@ -290,10 +262,7 @@ A semilattice has a top element $\top \land x = x$ and a bottom element $\bot \l
 
 For more on partial orders, see [[denotational semantics and domain theory]].
 
-A semilattice forms a partial order, where the partial ordering operation is defined as:
-$$
-x \sqsubseteq y \stackrel{\text{def}}{=} x \land y = x
-$$
+A semilattice forms a partial order, where the partial ordering operation is defined as: $$ x \sqsubseteq y \stackrel{\text{def}}{=} x \land y = x $$
 > [!note]
 > Another way of phrasing this: $m = a \land b \iff m \sqsubseteq a \land m \sqsubseteq b$
 
@@ -305,7 +274,7 @@ A **greatest lower bound** of a set of elements $x_{0}, \dots, x_{n}$ is an elem
 
 > [!note] Relationship with lubs
 > We talk about lubs in the notes linked above. What's the relationship between glbs and lubs?
->
+> 
 > In semilattices as we've discussed here, the meet operation returns the greatest lower bound. Since $x \sqsubseteq y$ only if $x \land y = x$, $x \land y \sqsubseteq x$ by reflexivity, and $x \sqsubseteq y$ by definition. There is also a *join* operation, which returns the lub between two elements. A full *[[lattice]]* contains both a meet *and* join operation. Here, we present meet semilattices.
 
 The **height** of a lattice is the largest number of relations in any ascending chain (a chain where elements don't equal) in the poset.
@@ -315,6 +284,7 @@ The **height** of a lattice is the largest number of relations in any ascending 
 We can draw diagrams of lattices, pointing from top to bottom:
 
 ![[Screenshot 2024-07-21 at 11.41.43 PM.png]]
+
 
 This is the semilattice for sets with union as meet.
 
@@ -336,10 +306,10 @@ The family of transfer functions $F : V \to V$ must satisfy the following proper
 Additionally, a framework can have a few properties depending on the transfer function $f$:
 
 - The framework is **monotone** if $f$ is monotone.
- 	- $x \sqsubseteq y \implies f(x) \sqsubseteq f(y)$
- 	- $f(x \land y) \sqsubseteq f(x) \land f(y)$.
+	- $x \sqsubseteq y \implies f(x) \sqsubseteq f(y)$
+	- $f(x \land y) \sqsubseteq f(x) \land f(y)$.
 - The framework is **distributive** if $f$ is distributive.
- 	- $f(x \land y) = f(x) \land f(y)$
+	- $f(x \land y) = f(x) \land f(y)$
 
 ## Iterative algorithm
 
@@ -348,14 +318,14 @@ Forward:
 ```
 OUT[entry] = initial value;
 for (each basic block B other than entry) {
- OUT[B] = top
+	OUT[B] = top
 }
 
 while (changes to any OUT occur) {
- for (each basic block B other than entry) {
-  IN[B] = meet(OUT[P] if P a predecessor of B)
-  OUT[B] = f(IN[B])
- }
+	for (each basic block B other than entry) {
+		IN[B] = meet(OUT[P] if P a predecessor of B)
+		OUT[B] = f(IN[B])
+	}
 }
 ```
 
@@ -364,14 +334,14 @@ Backward:
 ```
 IN[exit] = initial value;
 for (each basic block B other than entry) {
- IN[B] = top
+	IN[B] = top
 }
 
 while (changes to any OUT occur) {
- for (each basic block B other than entry) {
-  OUT[B] = meet(OUT[S] if S a successor of B)
-  IN[B] = f(OUT[B])
- }
+	for (each basic block B other than entry) {
+		OUT[B] = meet(OUT[S] if S a successor of B)
+		IN[B] = f(OUT[B])
+	}
 }
 ```
 
@@ -379,7 +349,7 @@ This algorithm has a few properties:
 
 1. If this converges, it's a solution to the dataflow equations
 2. If the framework is monotone, this is the maximum fixedpoint.
- 1. A maximum fixedpoint is a solution with the property that in any other solution, the values of $\mathrm{IN}[B]$ and $\mathrm{OUT}[B]$ are $\leq$ the corresponding values of the MFP.
+	1. A maximum fixedpoint is a solution with the property that in any other solution, the values of $\mathrm{IN}[B]$ and $\mathrm{OUT}[B]$ are $\leq$ the corresponding values of the MFP.
 3. If the semilattice of the framework is monotone and of nite height, then the algorithm is guaranteed to converge.
 
 ## What does this mean?
@@ -387,16 +357,16 @@ This algorithm has a few properties:
 What does the solution mean from a program semantics standpoint? To explore this, let's considering the entry of a basic block $B$. What does the dataflow value mean at this point? Let's consider three different possible solutions:
 
 - In the **ideal** solution, we would find the meet between all *possible* paths from the entry to $B$, where *possible* means there is some computation of the program that follows that path.
- 	- Any answer *smaller* is a conservative safe estimate.
- 	- Any answer *greater* than this ideal solution is incorrect.
+	- Any answer *smaller* is a conservative safe estimate.
+	- Any answer *greater* than this ideal solution is incorrect.
 - Finding the above is undecidable. In the **meet-over-paths** (MOP) solution, we find the meet between *all paths* from the entry to $B$. ^6a3dc5
- 	- $\mathrm{MOP}[B] \leq \mathrm{IDEAL}[B]$
- 	- This doesn't have a direct algorithm, since "all paths" is unbounded in the presence of cycles
+	- $\mathrm{MOP}[B] \leq \mathrm{IDEAL}[B]$
+	- This doesn't have a direct algorithm, since "all paths" is unbounded in the presence of cycles
 - The **maximum fixpoint** (MFP) solution is what we get from our algorithm
- 	- Compared to MOP, MFP is eager, immediately applies meet on confluence, instead of waiting to find all paths.
- 	- If the framework is distributive, $\mathrm{MFP}[B] = \mathrm{MOP}[B]$
- 	- Otherwise, $\mathrm{MFP}[B] \leq \mathrm{MOP}[B]$
- 	- This is because in $\mathrm{MFP}$, we visit basic blocks in arbitrary order. Additionally, we apply the meet operator to dataflow values obtained so far, including ones introduced artificially during initialization.
+	- Compared to MOP, MFP is eager, immediately applies meet on confluence, instead of waiting to find all paths.
+	- If the framework is distributive, $\mathrm{MFP}[B] = \mathrm{MOP}[B]$
+	- Otherwise, $\mathrm{MFP}[B] \leq \mathrm{MOP}[B]$
+	- This is because in $\mathrm{MFP}$, we visit basic blocks in arbitrary order. Additionally, we apply the meet operator to dataflow values obtained so far, including ones introduced artificially during initialization.
 
 # Constant propagation
 
@@ -428,9 +398,9 @@ Let $m' = f_{s}(m)$, where $m$ and $m'$ are dataflow values. $f_{s}$ has the fol
 
 - If $s$ isn't an assignment, $f_{s}$ is identity.
 - If the RHS is of the form $y + z$, then
- 	- $m'(x) = m(y) + m(z)$ if $m(y)$ and $m(z)$ are consts
- 	- $\mathrm{NAC}$ if either are $\mathrm{NAC}$
- 	- $\mathrm{UNDEF}$ otherwise
+	- $m'(x) = m(y) + m(z)$ if $m(y)$ and $m(z)$ are consts
+	- $\mathrm{NAC}$ if either are $\mathrm{NAC}$
+	- $\mathrm{UNDEF}$ otherwise
 - Function calls or pointer assignments or whatever else are $\mathrm{NAC}$.
 
 This captures the intuition of constant propagation. If the operands have constant values, we can compute the constant values. If they don't, we have to give up. If any of the values are undefined, this is also undefined. Notice that $\mathrm{NAC}$ takes precedence over $\mathrm{UNDEF}$. We only assign $\mathrm{UNDEF}$ if we're sure about that.
@@ -467,9 +437,9 @@ The last point is what makes this *lazy*.
 We define two kinds of redundancy:
 
 - An expr $e$ in a block $B$ is **fully redundant** if, along all paths reaching $B$, $e$ has been evaluated and its operands haven't been subsequently redefined.
- 	- Let $S$ be the set of blocks containing $e$ that renders $e$ in $B$ redundant.
- 	- The edges leaving the blocks in $S$ forms a *cutset* which, when removed, disconnects $B$ from entry.
- 	- No operands of $e$ are redefined along paths from blocks of $S$ to $B$.
+	- Let $S$ be the set of blocks containing $e$ that renders $e$ in $B$ redundant.
+	- The edges leaving the blocks in $S$ forms a *cutset* which, when removed, disconnects $B$ from entry.
+	- No operands of $e$ are redefined along paths from blocks of $S$ to $B$.
 - If $e$ is partially redundant, our algorithm introduces new copies of the expressions to make it fully redundant.
 
 > [!note] What's a cutset again
@@ -500,9 +470,9 @@ We assume every statement has its own basic block, and we only introduce new com
 
 > [!note]- Why introduce new blocks?
 > Consider the following example:
->
+> 
 > ![[Screenshot 2024-07-22 at 4.07.17 PM.png]]
->
+> 
 > Here, introducing `b + c` in $B_{3}$ would result in unneeded computation if we go to $B_{5}$. Instead, we need to introduce an intermediate block between $B_{3}$ and $B_{4}$, so that if we go that direction, only then do we compute `b + c`. A *critical edge* is an edge from a node with more than one successor to a node with more than one predecessor. Critical edges are where we need to introduce additional nodes.
 
 ### Anticipated expressions
@@ -515,33 +485,25 @@ When we say "anticipated or available *at* a block," we mean "anticipated or ava
 
 The expression isn't anticipated in $B_{2}$ since `c` is redefined in $B_{2}$; the value of `b + c` at the start of $B_{2}$ isn't used after $B_{2}$. `b + c` isn't anticipated in $B_{1}$ since it's unnecessary once `c` is redefined in $B_{2}$, which execution may go through. Same for $B_{8}$; `b + c` might never be used again if we go straight to $B_{11}$.
 
-The transfer function is as follows:
-$$
-f_{B}(x) = use_{B} \cup (x - kill_{B})
-$$
+The transfer function is as follows: $$ f_{B}(x) = use_{B} \cup (x - kill_{B}) $$
 
 Where $use_{B}$ is all expressions referenced in this block, and $kill_{B}$ is all expressions whose operands were defined in this block. Meet is set intersection ("all" paths), and since this is backwards, we define: $$ \begin{aligned}
 \mathrm{IN}[B] &= f_{B}(\mathrm{OUT}[B]) \\
 \mathrm{OUT}[B] &= \land_{S, succ(B)} \mathrm{IN}[S] \\
 \end{aligned} $$
 
+
 ### Available expressions
 
 Our algorithm also relies on what expressions are (not) available at each program point. Again, by available, we mean "is anticipated in all paths *before* this program point." Specifically, an expression is available on exit if:
 
 - It's either
- 	- available on entry, or
- 	- In the set of anticipated expressions on entry—it *could* be made available if it was computed here
+	- available on entry, or
+	- In the set of anticipated expressions on entry—it *could* be made available if it was computed here
 - and not killed in the block—none of its operands are defined in this block.
 
-Formally, we note this in the transfer function:
-$$
-f_{B}(x) = (anticipated[B].in \cup x) - kill_{B}
-$$
-Meet here is set intersection as well—all paths. With this **forward** analysis, we can define the set of expressions that should be placed at block $B$: the set of anticipated expressions that are not yet available:
-$$
-earliest[B] = anticipated[B].in - available[B].in
-$$
+Formally, we note this in the transfer function: $$ f_{B}(x) = (anticipated[B].in \cup x) - kill_{B} $$
+Meet here is set intersection as well—all paths. With this **forward** analysis, we can define the set of expressions that should be placed at block $B$: the set of anticipated expressions that are not yet available: $$ earliest[B] = anticipated[B].in - available[B].in $$
 In this case, $b + c \in earliest[B_{3}]$ and $b + c \in earliest[B_{5}]$
 
 ### Postponable expressions
@@ -550,10 +512,7 @@ An expression is postponable to $p$ if an early placement of $e$ is encountered 
 
 For instance, we can postpone $B_{3}$ to $B_{4}$, since there's no use of the expression after $B_{3}$. But we can't postpone it to $B_{7}$, since there's a use at $B_{7}$; doing this would cause a double-computation if we follow the path $B_{1}, B_{5}, B_{6}, B_{7}$. We also can't postpone the expression from $B_{5}$ to $B_{6}$, since it's used at $B_{5}$.
 
-We add expressions that we've seen were in $earliest[B]$, but remove them once they appear in $use_{B}$. This is a forward analysis:
-$$
-f_{B}(x) = (earliest[B] \cup x) - use_{B}
-$$
+We add expressions that we've seen were in $earliest[B]$, but remove them once they appear in $use_{B}$. This is a forward analysis: $$ f_{B}(x) = (earliest[B] \cup x) - use_{B} $$
 Meet is set intersection again. It's only postponable at this block if it's postponable at all previous blocks.
 
 An expression is placed at the *frontier* where an expression goes from being postponable to not being postponable. The expressions where this is true for a block $B$ is given by $latest[B]$. $e$ can be placed at the start of $B$ only if it's in $B$'s *earliest* or *postponable* set upon entry.
@@ -575,22 +534,19 @@ For our example, the latest placements of `b + c` are $B_{4}$ and $B_{5}$:
 
 Finally, we do a backward pass to see if any temporary variables are used beyond the block they're in. We're doing liveness analysis for expressions basically—an expression is *used* at point $p$ if there's a path from $p$ that uses the expression before it's reevaluated. This is backwards analysis.
 
-Since an expression $e$ is defined at $B$ if it's in $latest[B]$, our backwards analysis includes expressions that are used in this block, but removes them if they're defined in this block—are in $latest[B]$:
-$$
-f_{B}(x) = (use_{B} \cup x) - latest[B]
-$$
+Since an expression $e$ is defined at $B$ if it's in $latest[B]$, our backwards analysis includes expressions that are used in this block, but removes them if they're defined in this block—are in $latest[B]$: $$ f_{B}(x) = (use_{B} \cup x) - latest[B] $$
 
 This meet is union.
 
-### Putting it all together
+### Putting it all together.
 
 For every expression in the program, do the following:
 
 - Create a new temporary $t$ for $x + y$.
 - For all blocks $B$ where $x + y \in latest[B] \cap used [B].out$, add `t = x + y` at the start of $B$.
- 	- $latest[B]$ means it's definable in this block, $used [B].out$ means it's live and used later on.
+	- $latest[B]$ means it's definable in this block, $used [B].out$ means it's live and used later on.
 - For all blocks $B$ where $x + y \in use_{B} \cap (\neg latest[B] \cup used [B].out)$, replace `x + y` with `t`.
- 	- The expression is mentioned, and it's either not where an expression is defined, or it's where a variable is live.
+	- The expression is mentioned, and it's either not where an expression is defined, or it's where a variable is live.
 
 # Dealing with loops
 
@@ -598,10 +554,7 @@ We need some new terminology and concepts to deal with loops in our CFGs.
 
 ## Dominators
 
-A node $d$ **dominates** node $n$, written $d \operatorname{dom} n$, if every path from entry to $n$ goes through $d$. We can build a *dominator tree*, where the entry node is the root, and each node $d$ immediately dominates only its descendants. Every node $n$ has a unique *immediate dominator* $m$ that is the last dominator of $n$ on any path from entry to $n$. In other words:
-$$
-d \neq n \land d \operatorname{dom} n \implies d \operatorname{dom} m
-$$
+A node $d$ **dominates** node $n$, written $d \operatorname{dom} n$, if every path from entry to $n$ goes through $d$. We can build a *dominator tree*, where the entry node is the root, and each node $d$ immediately dominates only its descendants. Every node $n$ has a unique *immediate dominator* $m$ that is the last dominator of $n$ on any path from entry to $n$. In other words: $$ d \neq n \land d \operatorname{dom} n \implies d \operatorname{dom} m $$
 We can find dominators with a forward dataflow problem:
 
 |                   | Dominators                                                                                                                             |
@@ -611,10 +564,7 @@ We can find dominators with a forward dataflow problem:
 | Transfer function | $f_{B}(x) = x \cup \{ B \}$                                                                                                            |
 | Boundary          | $\mathrm{OUT}[ENTRY] = \{ ENTRY \}$                                                                                                    |
 | Meet              | $\land = \cap$                                                                                                                         |
-| Equations         |
-$$
-\begin{aligned} \mathrm{OUT}[B] &= f_{B}(\mathrm{IN}[B]) \\ \mathrm{IN}[B] &= \land_{P,pred(B)} \mathrm{OUT}[P] \\ \end{aligned}
-$$ |
+| Equations         | $$ \begin{aligned} \mathrm{OUT}[B] &= f_{B}(\mathrm{IN}[B]) \\ \mathrm{IN}[B] &= \land_{P,pred(B)} \mathrm{OUT}[P] \\ \end{aligned} $$ |
 | Initialization    | $\mathrm{OUT}[B] = N$                                                                                                                  |
 
 Note that by this definition, a node dominates itself.
@@ -639,14 +589,14 @@ The algorithm for building a depth-first ordering and a DFST is as follows:
 c = total number of nodes
 
 search(n):
- mark n visited
- for successor s in n:
-  if s is unvisited:
-   add edge n -> s to DFST
-   search(s)
-   
- dfn[n] = c
- c = c - 1
+	mark n visited
+	for successor s in n:
+		if s is unvisited:
+			add edge n -> s to DFST
+			search(s)
+			
+	dfn[n] = c
+	c = c - 1
 
 search(entry)
 ```
