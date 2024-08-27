@@ -79,6 +79,7 @@ const config: QuartzConfig = {
 
             // Custom
             Plugin.FillCheckbox(),
+            Plugin.DisplayMathNewline(),
         ],
         filters: [Plugin.RemoveDrafts()],
         emitters: [

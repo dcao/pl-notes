@@ -13,3 +13,4 @@ export { HardLineBreaks } from "./linebreaks"
 
 // custom
 export { FillCheckbox } from "./fill-checkbox"
+export { DisplayMathNewline } from "./dm-newline"

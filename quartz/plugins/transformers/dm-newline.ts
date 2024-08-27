@@ -1,20 +1,20 @@
-// This plugin turns [/] into [x], for display purposes.
+// Turns $$ xyz $$ into $$\nxyz\n$$.
 
 import { QuartzTransformerPlugin } from "../types"
 
-const checkboxRegex = new RegExp(/- \[\/\]/g);
+const dollarsRegex = new RegExp(/(.+)(\$\$)(.+)/g);
 
-export const FillCheckbox: QuartzTransformerPlugin = () => {
+export const DisplayMathNewline: QuartzTransformerPlugin = () => {
     return {
-        name: "FillCheckbox",
+        name: "DisplayMathNewline",
 
         // textTransform?: (ctx: BuildCtx, src: string | Buffer) => string | Buffer
-        textTransform(_ctx, src) {
+        textTransform(ctx, src) {
             if (src instanceof Buffer) {
                 src = src.toString()
             }
 
-            src = src.replace(checkboxRegex, "- [x]");
+            src = src.replace(dollarsRegex, "$1\n$2\n$3");
 
             return src;
         }
