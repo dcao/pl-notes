@@ -76,6 +76,9 @@ const config: QuartzConfig = {
             Plugin.CrawlLinks({ markdownLinkResolution: "shortest" }),
             Plugin.Description(),
             Plugin.Latex({ renderEngine: "mathjax" }),
+
+            // Custom
+            Plugin.FillCheckbox(),
         ],
         filters: [Plugin.RemoveDrafts()],
         emitters: [

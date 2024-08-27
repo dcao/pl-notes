@@ -43,8 +43,7 @@ From the syllabus:
 
 > [!info] Legend
 > - [ ] Reading or topic
->   - [x] Complete
->   - [/] Partially complete
+> - [x] Completed (or skimmed) reading or topic
 > - [ ] ==Missing reading==
 > - [ ] % Optional (prepended with a `%`)
 

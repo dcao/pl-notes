@@ -10,3 +10,6 @@ export { OxHugoFlavouredMarkdown } from "./oxhugofm"
 export { SyntaxHighlighting } from "./syntax"
 export { TableOfContents } from "./toc"
 export { HardLineBreaks } from "./linebreaks"
+
+// custom
+export { FillCheckbox } from "./fill-checkbox"
