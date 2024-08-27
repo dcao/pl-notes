@@ -26,7 +26,7 @@ export const DisplayMathNewline: QuartzTransformerPlugin = () => {
                     item = line.replace(dollarsRegex, "\n$$$$\n");
                 }
 
-                res = `${res}\n${item}`;
+                res = `${res}${item}\n`;
             }
 
             return res;
