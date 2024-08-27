@@ -14,9 +14,22 @@ export const DisplayMathNewline: QuartzTransformerPlugin = () => {
                 src = src.toString()
             }
 
-            src = src.replace(dollarsRegex, "\n$$$$\n");
+            let lines = src.split(/\r?\n|\r|\n/g);
+            let res = "";
 
-            return src;
+            for (const line of lines) {
+                let item = "";
+
+                if (line.startsWith(">")) {
+                    item = line.replace(dollarsRegex, "\n> $$$$\n> ");
+                } else {
+                    item = line.replace(dollarsRegex, "\n$$$$\n");
+                }
+
+                res = `${res}\n${item}`;
+            }
+
+            return res;
         }
     }
 }
