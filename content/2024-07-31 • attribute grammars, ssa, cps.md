@@ -1,0 +1,4 @@
+- [x] [[ahoDragonBookGrammars2007|Dragon Book 5, 6.2.4 - grammars & SSA]] ✅ 2024-07-18
+- [x] [[appelSSAFunctionalProgramming1998|SSA is functional programming]] ✅ 2024-07-25
+- [x] [[flanaganEssenceCompilingContinuations1993|The essence of compiling with continuations]] ✅ 2024-07-25
+	- [x] See also: [[continuation-passing style]] ✅ 2024-07-26

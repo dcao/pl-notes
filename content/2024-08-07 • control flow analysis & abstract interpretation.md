@@ -1,0 +1,10 @@
+- [x] [[nielsonPrinciplesProgramAnalysis1999a|Principles of Program Analysis 3: Constraint-based analysis]] ✅ 2024-07-27
+	- [x] https://www.cs.cmu.edu/~aldrich/courses/15-819O-13sp/resources/cfa.pdf ✅ 2024-07-27
+	- [x] https://matt.might.net/articles/implementation-of-kcfa-and-0cfa/ ✅ 2024-07-27
+	- [x] and others, check the notes ✅ 2024-07-27
+- [x] [[nielsonPrinciplesProgramAnalysis1999b|Principles of Program Analysis 4: Abstract interpretation]] ✅ 2024-07-30
+	- [x] https://www.di.ens.fr/~cousot/AI/IntroAbsInt.html ✅ 2024-07-30
+	- [x] https://www.cs.utexas.edu/~isil/cs389L/AI-6up.pdf ✅ 2024-07-30
+- [x] [[sridharanAliasAnalysisObjectOriented2013|Alias Analysis for Object-Oriented Programs]] ✅ 2024-07-29
+	- [x] https://pages.cs.wisc.edu/~fischer/cs701.f14/7.POINTER-ANALYSIS.html ✅ 2024-07-29
+	- [x] https://vod.video.cornell.edu/media/1_7ngps985 ✅ 2024-07-29

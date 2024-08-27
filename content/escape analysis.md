@@ -1,0 +1,1 @@
+Does the pointer "escape" its scope? e.g., function def

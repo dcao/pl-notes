@@ -1,0 +1,31 @@
+- We don't have many forward-looking guidebooks on how to design PLs!
+	- Not guidebooks but historical records of how PLs have been used and designed
+		- [[hoareHintsProgrammingLanguage1983|Hints on Programming Language Design]], Hoare
+		- [[hughesWhyFunctionalProgramming1989|Why Functional Programming Matters]], Hughes
+		- [[gabrielLispGoodNews1991|Lisp: Good News, Bad News, How to Win Big]], Gabriel
+		- Confessions of a Used PL Salesman, Meijer
+		- [[wadlerHowEnterprisesUse|How enterprises use functional languages, and why they don’t]], Wadler
+	- Some guides are more limited in scope but more concrete
+		- How to design a good API and why it matters, Bloch
+- Sarah's rules of thumb
+	- Figure out what users need
+		- Ideally, do formative studies etc.
+		- If you can't do all of that...
+			- Write out >20 programs that could benefit from category of abstraction we're considering
+			- Brainstorm abstraction alternatives
+			- Write out programs using each of alternatives
+		- A better guide if you *can* do user studies
+			- Learn what tasks are **easy**
+			- Learn what tasks are **hard**
+			- Learn what *natural language* is easy
+				- How do they naturally express their domain?
+		- > e.g., Sarah studying social scientists doing web scraping
+			- She learned that they don't know how to express parallelism, but they know how to express *deduplication*
+			- They have an intuition for "if these rows have the same name and author, deduplicate"
+			- You can use this info to get parallelism!
+		- > e.g. programming robot motion
+			- They printed out physical arrows with QR codes that instruct the robot "go here" or "pick this object up"
+			- They have little corner pieces that say "stop at this corner!"
+			- Situated Tangible Robot Programming
+	- Do what makes them successful
+- [[2024-03-14 • CS 294, 7Th class activity|Class activity]]

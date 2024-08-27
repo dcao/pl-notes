@@ -1,0 +1,5 @@
+- [[denotational semantics and domain theory]]
+	- [x] [[winskelWinskelDenotationalSemantics1993|Winskel 5: The denotational semantics of Imp]] ✅ 2024-07-18
+	- [x] [[winskelWinskelAxiomaticSemantics1993|Winskel 6, 7, 8: Axiomatic semantics and domain theory]] ✅ 2024-07-18
+	- [x] [[CS 263 - Introduction to Denotational Semantics]] ✅ 2024-07-18
+- [x] [[pierceTAPL20222002|TAPL 20, 22, 23, 24: Recursive, universal, and existential types]]

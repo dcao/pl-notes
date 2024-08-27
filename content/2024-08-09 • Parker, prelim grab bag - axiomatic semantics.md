@@ -1,0 +1,1 @@
+https://cs.stackexchange.com/questions/65440/what-does-it-mean-to-strengthen-the-precondition-and-weaken-the-postcondition

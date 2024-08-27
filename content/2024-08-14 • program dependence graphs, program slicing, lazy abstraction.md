@@ -1,0 +1,4 @@
+- [x] [[ferranteProgramDependenceGraph1987|The program dependence graph and its use in optimization]] ✅ 2024-08-03
+- [x] [[tipSurveyProgramSlicing1994|A survey of program slicing techniques]] ✅ 2024-08-05
+	- See also [[program slicing]] and [[2024-04-16 • CS 294, 13Tu – Program Slicing]]
+- [/] [[henzingerLazyAbstraction2002|Lazy abstraction]]

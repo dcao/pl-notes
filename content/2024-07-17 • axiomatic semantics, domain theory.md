@@ -1,0 +1,3 @@
+- [x] [[winskelWinskelAxiomaticSemantics1993|Winskel 6, 7, 8: Axiomatic semantics and domain theory]] ✅ 2024-08-13
+	- [[denotational semantics and domain theory]]
+- [x] Necula, CS 263: [[CS 263 - Introduction to Denotational Semantics|Introduction to Denotational Semantics]] ✅ 2024-07-18

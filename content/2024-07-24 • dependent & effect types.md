@@ -1,0 +1,2 @@
+- [x] [[pierceATAPLDependentTypes2005|ATAPL 2: Dependent types]] ✅ 2024-07-23
+- [x] [[pierceATAPLEffectTypes2005|ATAPL 3: Effect types]] ✅ 2024-07-25

@@ -1,0 +1,2 @@
+- [x] [[pierceTAPL2002|TAPL 1, 3, 5, 6: Untyped lambda calculus]] ⏳ 2024-06-18 ✅ 2024-06-18
+- [x] [[pierceTAPL11Simplytyped2002|TAPL 8, 9, 11: Simply-typed lambda calculus]] ⏳ 2024-06-18 ✅ 2024-06-18
