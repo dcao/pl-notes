@@ -1,7 +1,7 @@
 ---
 aliases:
-  - Can programming be liberated from the von Neumann style? a functional style and its algebra of programs
-  - Can programming be liberated from the von Neumann style?
+  - Can programming be liberated from the von Neumann style: a functional style and its algebra of programs
+  - Can programming be liberated from the von Neumann style
 tags:
   - reading
 year: 1978
