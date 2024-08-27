@@ -1,5 +1,5 @@
 ---
-title: Index
+title: David's PL Notes
 ---
 
 # About this website
