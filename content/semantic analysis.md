@@ -53,7 +53,8 @@ In a Hindley-Milner type system, we have two rules for where polymorphic types c
 
 Constraint solving is basically the same as is described in [[pierceTAPL20222002#§ 22 Type reconstruction|TAPL §22]]. The main difference here is that in a Hindley-Milner type system, the syntax for types is slightly different. In particular, we separate monotypes and polytypes, and monotypes can also be *type constructors*.
 
-$$ \begin{aligned}
+$$
+\begin{aligned}
 \tau &&&\text{monotypes:} \\
 &= \alpha &&\text{variable} \\
 &\mid C\ \tau_{1}, \dots, \tau_{n} &&\text{application} \\
@@ -61,7 +62,8 @@ $$ \begin{aligned}
 \sigma &&&\text{polytypes:} \\
 &= \tau \\
 &\mid \forall \alpha. \sigma &&\text{quantifier} \\
-\end{aligned} $$
+\end{aligned}
+$$
 
 We unify as follows (the lectures further divide $\tau$ into type constructors):
 
