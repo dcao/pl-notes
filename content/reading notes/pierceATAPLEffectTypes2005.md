@@ -66,16 +66,20 @@ Things to note:
 
 - E-New takes precedence, evaluating the term inside the lexical scope with respect to the region.
 - Once evaluated, E-NewBeta replaces the region with a dummy value, modeling deallocation. This models the intuition that if the final evaluated term still holds a pointer into the region, outside of that region's scope, that value won't make any sense!
-	- `(new p. x at p)` is invalid, since when we leave the scope, the region is deallocated, and `p` becomes dangling.
-	- We model this by evaluating `(new p. x at p) -> p at INVALID`, since `p` has been deallocated.
+ 	- `(new p. x at p)` is invalid, since when we leave the scope, the region is deallocated, and `p` becomes dangling.
+ 	- We model this by evaluating `(new p. x at p) -> p at INVALID`, since `p` has been deallocated.
 - The semantics are: evaluate region, run item within scope, deallocate region.
 
 This is **unsound**. $\verb|new|\ \rho. (x\ \verb|at|\ \rho)$ is well-typed.
 
 # Effects
 
-The form of the judgment is: $$ \Gamma \vdash t :^\varphi T $$
+The form of the judgment is:
+$$
+\Gamma \vdash t :^\varphi T
+$$
 where:
+
 - $\varphi$ is an **effect expression** (i.e., **effect**)
 - ${}^\varphi T$ is an **effect type**
 
@@ -105,12 +109,12 @@ A **region** is a sub-heap containing heap allocated values. The heap is divided
 Versus the tagged language, we have some changes:
 
 - We've added **region abstraction**—we can now bind a region and pass it in as an argument.
-	- This allows for *region polymorphism*.
-	- Since we have lexical region allocation only, region parameters must outlive functions.
-	- *Region polymorphic recursion* means that the body of a recursive function can use pass in regions to recursive invocations different than the ones passed to itself at the top.
+ 	- This allows for *region polymorphism*.
+ 	- Since we have lexical region allocation only, region parameters must outlive functions.
+ 	- *Region polymorphic recursion* means that the body of a recursive function can use pass in regions to recursive invocations different than the ones passed to itself at the top.
 - Untagging is *implicit*: see RE-RBeta and RE-Beta.
-	- Untagging will get stuck if we try to untag with $\bullet$, since the rules require the place to be $\rho$, which is separate from $\bullet$ in the syntax.
-	- Additionally, allocation at a non-existent region will get stuck for the same reason: see RE-Clos and RE-RClos.
+ 	- Untagging will get stuck if we try to untag with $\bullet$, since the rules require the place to be $\rho$, which is separate from $\bullet$ in the syntax.
+ 	- Additionally, allocation at a non-existent region will get stuck for the same reason: see RE-Clos and RE-RClos.
 
 Deallocated memory $\bullet$ can be reused. In other words, if $t_{\bullet}$ is a term with some deallocated values, and $t$ is constructed from $t_{\bullet}$ by replacing some of these with new values, if $t_{\bullet}$ doesn't get stuck, neither does $t$.
 
@@ -131,10 +135,14 @@ One of the distinguishing factors about TT is that it has a type system at all! 
 h o o h b o y. Let's go through this:
 
 - We have type polymorphism like System F, but also **effect polymorphism** $\forall \epsilon. T$. This allows us to define functions that don't specifically hardcode the set of regions.
-	- Map normally has type $\forall a, b. (a \to b) \to [a] \to [b]$
-	- Taking into account regions: $\forall a, b. (a \to^\varphi b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \varphi} ([b], \rho')$
-	- But that requires us to lock in to a specific selection of $\varphi$.
-	- We can be polymorphic over that! $$ \forall a, b, \epsilon, (a \to^\epsilon b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \epsilon} ([b], \rho') $$
+ 	- Map normally has type $\forall a, b. (a \to b) \to [a] \to [b]$
+ 	- Taking into account regions: $\forall a, b. (a \to^\varphi b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \varphi} ([b], \rho')$
+ 	- But that requires us to lock in to a specific selection of $\varphi$.
+ 	- We can be polymorphic over that!
+
+$$
+\forall a, b, \epsilon, (a \to^\epsilon b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \epsilon} ([b], \rho')
+$$
 
 This system is **sound**: progress & preservation means well-typed programs don't get stuck.
 
@@ -187,7 +195,10 @@ Instead of lexical scope, `new` and `release` (i.e., deallocation) are statement
 
 ## Cyclone
 
-Rust is based on Cyclone's model! **Lifetimes**: region $\rho$ outlives region $\rho'$ if the *lifetime* of $\rho$ encompasses that of $\rho'$. We have region subtyping. Instead of effect variables, Cyclone introduces a `regions_of` operator, representing the region variables that occur free in a type. This operator is left abstract until the type variable is instantiated, thus emulating effect polymorphism! Here's the type of map: $$ \forall a, b. (a \to b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \verb|regions_of|(a \to b)} ([b], \rho') $$
+Rust is based on Cyclone's model! **Lifetimes**: region $\rho$ outlives region $\rho'$ if the *lifetime* of $\rho$ encompasses that of $\rho'$. We have region subtyping. Instead of effect variables, Cyclone introduces a `regions_of` operator, representing the region variables that occur free in a type. This operator is left abstract until the type variable is instantiated, thus emulating effect polymorphism! Here's the type of map:
+$$
+\forall a, b. (a \to b) \to ([a], \rho) \to^{\{ \rho, \rho' \} \cup \verb|regions_of|(a \to b)} ([b], \rho')
+$$
 
 ## Other approaches
 

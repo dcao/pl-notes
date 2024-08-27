@@ -28,7 +28,10 @@ Just as an overview, since we touched on Hoare rules (i.e., *Hoare triples*) in 
 Additionally, we say $\sigma \models A$ if the predicate $A$ holds under state $\sigma$. See [[CS 264 Notes#^85dbe6]].
 
 > [!note] On bottom
-> As convention, we can write $\mathcal{C}[\![c]\!]\sigma = \bot$ if it is undefined. We can also adopt the convention that $\bot \models A$, we can describe the meaning of $\{ A \}c\{ B \}$ as: $$ \forall \sigma \in \Sigma. \sigma \models A \implies \mathcal{C}[\![c]\!]\sigma \models B $$
+> As convention, we can write $\mathcal{C}[\![c]\!]\sigma = \bot$ if it is undefined. We can also adopt the convention that $\bot \models A$, we can describe the meaning of $\{ A \}c\{ B \}$ as:
+$$
+\forall \sigma \in \Sigma. \sigma \models A \implies \mathcal{C}[\![c]\!]\sigma \models B
+$$
 
 To explain this, we go through an example of defining axiomatic semantics for IMP.
 
@@ -51,15 +54,25 @@ This is a more axiomatic definition, where we directly define those states which
 
 ![[Screenshot 2024-07-17 at 10.56.20 PM.png]]
 
-The **extension** of an assertion $A$ is the set of states (including $\bot$, denoting a nonterminating computation) that satisfies $A$ with respect to an interpretation: $$ A^I = \{ \sigma \in \Sigma_{\bot} \mid \sigma \models^I A \} $$
+The **extension** of an assertion $A$ is the set of states (including $\bot$, denoting a nonterminating computation) that satisfies $A$ with respect to an interpretation:
+$$
+A^I = \{ \sigma \in \Sigma_{\bot} \mid \sigma \models^I A \}
+$$
+
 ### Partial correctness
 
-Now, we can define a Hoare rule $\{ A \}c\{ B \}$ as follows: $$ \sigma \models^I \{ A \}c\{ B \}\ \iff (\sigma \models^I A \implies \mathcal{C}[\![c]\!]\sigma \models^I B) $$
+Now, we can define a Hoare rule $\{ A \}c\{ B \}$ as follows:
+$$
+\sigma \models^I \{ A \}c\{ B \}\ \iff (\sigma \models^I A \implies \mathcal{C}[\![c]\!]\sigma \models^I B)
+$$
 with respect to some interpretation $I$.
 
 ### Validity
 
-We define the following operation: $$ \models \{ A \}c\{ B \} $$
+We define the following operation:
+$$
+\models \{ A \}c\{ B \}
+$$
 
 This means that the Hoare rule holds for all states and interpretations. In general, $A$ is valid iff $\models A$.
 
@@ -79,7 +92,11 @@ These are the same rules as discussed in [[CS 264 Notes#Introduction to Program 
 There are two properties we care about for such a logical system:
 
 - **Soundness**: if the assumptions in the rule's premise are valid, so is its conclusion. $$\vdash \{ A \}c\{ B \} \implies \models \{ A \}c\{ B \}$$
-- **Completeness**: all valid partial correctness assertions should be able to be obtained as derived theorems. $$ \models \{ A \}c\{ B \} \implies \vdash \{ A \}c\{ B \} $$
+- **Completeness**: all valid partial correctness assertions should be able to be obtained as derived theorems.
+
+$$
+\models \{ A \}c\{ B \} \implies \vdash \{ A \}c\{ B \}
+$$
 
 # § 7. Completeness of Hoare rules
 
@@ -94,10 +111,16 @@ However, the system from above is still complete; if a partial correctness asser
 
 Again, see [[CS 264 Notes#Weakest Precondition|the relevant discussion in CS 264 notes]] for more info.
 
-In this book, the weakest precondition is defined as the *set of states* where execution of $c$ diverges or ends up in a final state satisfying $B$. Comparing to the CS 264 definition, instead of defining it as the weakest predicate, we define it as the set of states for which that weakest predicate holds. Formally, we write: $$ wp^I[\![c, B]\!] = \{ \sigma \in \Sigma_{\bot} \mid \mathcal{C}[\![c]\!]\sigma \models^I B \} $$
+In this book, the weakest precondition is defined as the *set of states* where execution of $c$ diverges or ends up in a final state satisfying $B$. Comparing to the CS 264 definition, instead of defining it as the weakest predicate, we define it as the set of states for which that weakest predicate holds. Formally, we write:
+$$
+wp^I[\![c, B]\!] = \{ \sigma \in \Sigma_{\bot} \mid \mathcal{C}[\![c]\!]\sigma \models^I B \}
+$$
 `Assn` is **expressive** iff for every command $c$ and assertion $B$ there exists a weakest precondition $A_{0}$; i.e., $\forall I. A_{0}^I = wp^I[\![c, B]\!]$.
 
-More notation: the assertion expressing a weakest precondition is defined as: $$ \sigma \models^I w[\![c, B]\!] \iff \mathcal{C}[\![c]\!]\sigma \models^I B $$
+More notation: the assertion expressing a weakest precondition is defined as:
+$$
+\sigma \models^I w[\![c, B]\!] \iff \mathcal{C}[\![c]\!]\sigma \models^I B
+$$
 for all interpretations $I$.
 
 > [!danger] TODO

@@ -27,22 +27,22 @@ A **program dependence graph** (PDG) is an alternate representation of programs,
 3: int c = a + 6;
 
 4: if (c > 10) {
-	5: int x = b + c;
+ 5: int x = b + c;
 }
 ```
 
 ...we would have edges $1 \to 2$, $1 \to 3$ and $3 \to 4$, but no edges between $2$ and $3$, since they are independent; these are *data dependencies*! Additionally, we would have an edge $4 \to 5$, since the evaluation of $5$ depends on the value of $4$; this is a *control dependency*. This kind of representation is beneficial for a number of reasons:
 
 - **Auto-parallelization**.
-	- This representation is unlike a [[ahoDragonBookBasic2007|control flow graph]], since for nodes whose concrete values or execution don't depend on each other, we don't enforce any sort of ordering on them!
-	- Thus, this representation only exposes *necessary* data dependence/sequencing, exposing opportunities for parallel computation!
-	- This was the original motivation for this development
+ 	- This representation is unlike a [[ahoDragonBookBasic2007|control flow graph]], since for nodes whose concrete values or execution don't depend on each other, we don't enforce any sort of ordering on them!
+ 	- Thus, this representation only exposes *necessary* data dependence/sequencing, exposing opportunities for parallel computation!
+ 	- This was the original motivation for this development
 - **Improving performance of [[2024-07-10 • optimizations and gc|program optimization]]**.
-	- Lots of program transformations can be computed with a single walk of these dependences, since computationally relevant parts of the program are directly connected.
-	- Also, unlike a *data dependence graph*, we also expose control dependencies (e.g., the edge $4 \to 5$).
-	- Thus, transformations like vectorization and code motion that rely on knowing both data and control dependencies are easily handled!
+ 	- Lots of program transformations can be computed with a single walk of these dependences, since computationally relevant parts of the program are directly connected.
+ 	- Also, unlike a *data dependence graph*, we also expose control dependencies (e.g., the edge $4 \to 5$).
+ 	- Thus, transformations like vectorization and code motion that rely on knowing both data and control dependencies are easily handled!
 - **Allowing for incremental [[ahoDragonBookMachineindependent2007|dataflow analysis]]**.
-	- This representation allows for an *incremental dataflow algorithm* that permits *incremental optimization* as dataflow information is updated.
+ 	- This representation allows for an *incremental dataflow algorithm* that permits *incremental optimization* as dataflow information is updated.
 
 # The program dependence graph
 
@@ -74,25 +74,28 @@ Let $S$ be the set of all edges $A \to B$ in the CFG where $B$ doesn't post-domi
 
 > [!example]-
 > As an example, here's an unmodified CFG for a program:
-> 
+>
 > ![[Screenshot 2024-08-02 at 11.55.39 AM.png]]
 > If we build the post-dominator tree for this program, we get:
 > ![[Screenshot 2024-08-02 at 12.00.34 PM.png]]
 >
-> Building the set $S$ from this, we have: $$ S = \{ (ENTRY, START), (1, 2), (1, 3), (2, 4), (2, 5), (3, 5) \} $$
-> 
+> Building the set $S$ from this, we have:
+$$
+S = \{ (ENTRY, START), (1, 2), (1, 3), (2, 4), (2, 5), (3, 5) \}
+$$
+>
 > The intuition is that $S$ consists of all edges where $B$ may or may not be executed depending on the execution of $A$. Note that we have $ENTRY \to START$ but not $ENTRY \to STOP$, since $STOP$ post-dominates $ENTRY$; either $ENTRY$ goes directly to $STOP$, or it'll go through the rest of program execution and end up there eventually.
 
 Each edge $A \to B$ in $S$ corresponds to a number of nodes that should be marked as being control dependent on $A$. There are two possible cases here:
 
 - If $A$ is an ancestor of $B$ in the post-dominator tree, we mark all nodes on the path up from $B$ to $A$ as being control dependent on $A$.
-	- This occurs when we have loops: when $B$ is the last node in a loop body, and loops back to $A$ depending on a condition.
-	- $B$ is first in the CFG, but $A$ post-dominates.
-	- The post-dominator tree is kind of backwards: $EXIT$ is always on top!
+ 	- This occurs when we have loops: when $B$ is the last node in a loop body, and loops back to $A$ depending on a condition.
+ 	- $B$ is first in the CFG, but $A$ post-dominates.
+ 	- The post-dominator tree is kind of backwards: $EXIT$ is always on top!
 - Otherwise, we mark all nodes from the path up from $B$ to the **parent** of $A$ as being control dependent on $A$.
-	- This node is *guaranteed* to be the *least common ancestor* of $A$ and $B$.
-	- We know it must be an ancestor of $B$ since if it weren't, it wouldn't be able to be an ancestor of $A$, since ==TODO==
-	- It must be the parent of $A$ since that is $A$'s immediate post-dominator.
+ 	- This node is *guaranteed* to be the *least common ancestor* of $A$ and $B$.
+ 	- We know it must be an ancestor of $B$ since if it weren't, it wouldn't be able to be an ancestor of $A$, since ==TODO==
+ 	- It must be the parent of $A$ since that is $A$'s immediate post-dominator.
 
 > [!note]
 > Note that above, we stated by definition that $B$ can't post-dominate $A$. But we never said anything about the other way around!
@@ -116,24 +119,24 @@ Eventually, our goal is to create a bunch of region nodes, where for each region
 To create these region nodes, we let's look at our control dependences, and perform the following steps:
 
 - Examine every node $N$ that has other than a single unlabeled control dependence predecessor. This node $N$ has a set of control dependence predecessors $CD$.
-	- We do a *[[ahoDragonBookMachineindependent2007#^121596|postorder traversal]]* over the post-dominator tree, visiting children left-to-right, then parents.
-	- This means $O(N^2)$ runtime, with respect to number of nodes $N$.
-	- Remember that the set of control dependences of ancestors in the post-dominator tree don't necessarily have a subset relationship with respect to those of its children!
+ 	- We do a *[[ahoDragonBookMachineindependent2007#^121596|postorder traversal]]* over the post-dominator tree, visiting children left-to-right, then parents.
+ 	- This means $O(N^2)$ runtime, with respect to number of nodes $N$.
+ 	- Remember that the set of control dependences of ancestors in the post-dominator tree don't necessarily have a subset relationship with respect to those of its children!
 - Extract $CD$ into its own region node $R$. $R$'s predecessors are now $CD$, and $N$'s predecessor is $R$.
-	- We keep a map from sets of CDs to region nodes.
+ 	- We keep a map from sets of CDs to region nodes.
 - Check the *intersection* $INT$ between $CD$ and each of its children $C$'s CDs, $CD_{C}$
-	- If $CD_{C} = CD$, we can make the child just depend on $R$ instead.
-	- If $CD_{C} = INT \subseteq CD$, replace whatever those dependences are in $R$ with the child's predecessor.
-		- After processing a node, it will only have one predecessor
-		- And children are processed first!
+ 	- If $CD_{C} = CD$, we can make the child just depend on $R$ instead.
+ 	- If $CD_{C} = INT \subseteq CD$, replace whatever those dependences are in $R$ with the child's predecessor.
+  		- After processing a node, it will only have one predecessor
+  		- And children are processed first!
 - Set $R$'s successors to all nodes
-- It's assigned $CD$ as its predecessors, and its successors are all the nodes that are control dependent on exactly this set. 
+- It's assigned $CD$ as its predecessors, and its successors are all the nodes that are control dependent on exactly this set.
 - Finally, for every predicate node, we want to make sure it only has one false edge and one true edge
-	- If there's multiple false edges, create a new region node, have the false edge point to that, and have all the false successors receive from that new region node instead.
+ 	- If there's multiple false edges, create a new region node, have the false edge point to that, and have all the false successors receive from that new region node instead.
 
 > [!example]-
 > ![[Screenshot 2024-08-02 at 4.51.47 PM.png]]
-> 
+>
 > The left image shows the whole process up until the last "Finally" step. The right image shows the completed process.
 
 ### Approximating control dependence
@@ -147,53 +150,53 @@ Instead, we're gonna create an **approximate control dependence graph**. This gr
 
 - It's much better suited for generating efficient control flow
 - For "structured programs" (i.e., [no gotos](https://en.wikipedia.org/wiki/Structured_programming)?), this is equivalent to the actual control dependence graph.
-	- This paper was written in 1987. This was a concern they had back then
-	- Even when it's not, it's better than the CFG is lmao
+ 	- This paper was written in 1987. This was a concern they had back then
+ 	- Even when it's not, it's better than the CFG is lmao
 
 At a high level, the issue with our previous version of CDGs was what information region nodes encoded. Before, region nodes stood in for a set of conditional predicates that were true at that point; they had a single predecessor—==usually? or always?== a true/false edge from a predicate—and all of its successors were items where the conditional predicates were at least what was contained in this region node. It created hierarchical structure in the CDG.
 
 However, this says nothing about how its descendants should be ordered when going back to a CFG! To ameliorate ==this==, we want regions to hold some extra information. Specifically, they can now have two kinds of control dependence successors:
 
 - First, a region node can point to the *entry node of a hammock*, a subgraph within the CFG that has single entry and exit nodes.
-	- A *hammock* is a subgraph within the graph with associated *entry* and *exit* nodes. ^0e12cf
-	- Its properties, formally:
-		- All edges from $(G - H)$ to $H$ go to entry node $V$.
-		- All edges from $H$ to $(G - H)$ go to exit node $W$.
-		- $V \in H, W \not\in H$.
-	- More informally:
-		- All edges into the hammock must go to the entry node.
-		- All edges out of the hammock must go to the exit node.
-		- Basically, the hammock is like an island in the control flow graph, where all inputs go through the entry, and all outputs go through the exit
-		- The exit is considered not part of the hammock.
-	- If $X \in H$ and $Y \not\in H$,  $Y$ isn't control dependent on $X$.
-		- If $Y$ is the exit node, it necessarily post-dominates $X$.
-		- Otherwise, for a given exit node $W$, we know all paths from $X$ to the exit must go through the exit node $W$. If $Y$ were to be control dependent on $X$, $Y$ would post-dominate $W$. This would mean $Y$ post-dominates $X$, which is a contradiction.
-	- Note that hammocks can have sub-hammocks!
-	- These edges will always point to nodes.
+ 	- A *hammock* is a subgraph within the graph with associated *entry* and *exit* nodes. ^0e12cf
+ 	- Its properties, formally:
+  		- All edges from $(G - H)$ to $H$ go to entry node $V$.
+  		- All edges from $H$ to $(G - H)$ go to exit node $W$.
+  		- $V \in H, W \not\in H$.
+ 	- More informally:
+  		- All edges into the hammock must go to the entry node.
+  		- All edges out of the hammock must go to the exit node.
+  		- Basically, the hammock is like an island in the control flow graph, where all inputs go through the entry, and all outputs go through the exit
+  		- The exit is considered not part of the hammock.
+ 	- If $X \in H$ and $Y \not\in H$,  $Y$ isn't control dependent on $X$.
+  		- If $Y$ is the exit node, it necessarily post-dominates $X$.
+  		- Otherwise, for a given exit node $W$, we know all paths from $X$ to the exit must go through the exit node $W$. If $Y$ were to be control dependent on $X$, $Y$ would post-dominate $W$. This would mean $Y$ post-dominates $X$, which is a contradiction.
+ 	- Note that hammocks can have sub-hammocks!
+ 	- These edges will always point to nodes.
 - Second, region nodes can have a number of *exit edges*.
-	- These are like exit edges of a basic block; they can optionally be labeled with true/false.
-	- After we do the translation, these edges will point to other regions.
+ 	- These are like exit edges of a basic block; they can optionally be labeled with true/false.
+ 	- After we do the translation, these edges will point to other regions.
 - Additionally, each region now contains state about the subhammocks (all nodes and edges) it "corresponds" to.
-	- This correspondence can be exploited for generating code from the control dependence graph, as we'll see below
+ 	- This correspondence can be exploited for generating code from the control dependence graph, as we'll see below
 
 This approximation is computed by repeatedly transforming the CFG in place:
 
 - First, we detect **hammocks** in the control flow graph.
 - Second, add a new region $R$ and a new edge $EXIT \to R$.
 - Third, convert each predicate node into a region node.
-	- Region nodes now contain a list of "subhammocks" as state: this is initialized to the empty set.
+ 	- Region nodes now contain a list of "subhammocks" as state: this is initialized to the empty set.
 - Fourth, apply some transformations to turn the CFG into a control dependence graph!
-	- Process in *inverse topological order*: end-to-beginning.
-	- These transformations do two things:
-		- Move some nodes/subhammocks around.
-		- Add the subhammock to the region node involved.
-	- Type 1: make exit node with no non-hammock predecessors a predecessor to entry node
-		- ![[Screenshot 2024-08-02 at 5.32.17 PM.png]]
-		- Because we're going in inverse topological, the exit node is *guaranteed to be a region.*
-		- We also add the hammock into the state of the region node being pointed to.
-		- $V$ is the entry node of the hammock.
-	- Type 2: for exit node with other predecessors, create region node with subhammock and exit edge to exit node
-		- ![[Screenshot 2024-08-02 at 5.42.41 PM.png]]
+ 	- Process in *inverse topological order*: end-to-beginning.
+ 	- These transformations do two things:
+  		- Move some nodes/subhammocks around.
+  		- Add the subhammock to the region node involved.
+ 	- Type 1: make exit node with no non-hammock predecessors a predecessor to entry node
+  		- ![[Screenshot 2024-08-02 at 5.32.17 PM.png]]
+  		- Because we're going in inverse topological, the exit node is *guaranteed to be a region.*
+  		- We also add the hammock into the state of the region node being pointed to.
+  		- $V$ is the entry node of the hammock.
+ 	- Type 2: for exit node with other predecessors, create region node with subhammock and exit edge to exit node
+  		- ![[Screenshot 2024-08-02 at 5.42.41 PM.png]]
 
 We can exploit this construction for efficient code generation:
 
@@ -204,9 +207,9 @@ We can exploit this construction for efficient code generation:
 
 > [!note]- Prerequisite: what is an "upwards exposed use"
 > The text makes mention of this without defining it. Here's a slide from some Georgia Tech notes:
-> 
+>
 > ![[Screenshot 2024-08-03 at 11.54.29 AM.png]]
-> 
+>
 > This is also known as a *reachable use*. It's kind of like availability, but it's not "has this been already referenced."
 
 To figure out data dependence, we make a DAG for each basic block during program parsing. Each [upwards exposed use](https://en.wikipedia.org/wiki/Upwards_exposed_uses) in a block corresponds to a DAG leaf node, called a *merge node*. We then do [[ahoDragonBookMachineindependent2007#Reaching definitions|reaching definition]] analysis, and connect reaching definitions to their use sites. Thus, a merge node represents the *set* of reaching definitions at that point—all the predecessors are all the reaching definitions.
@@ -215,14 +218,14 @@ The concept is pretty simple, but there are some complications for common langua
 
 - **I/O** operations act on an implicit file object.
 - **Array operations** are assumed to act on the entire array.
-	- We can try doing vectorization, etc. by rephrasing all loop indices as operations on a loop index from 1 to the size of the array
-	- Check dependence analysis
+ 	- We can try doing vectorization, etc. by rephrasing all loop indices as operations on a loop index from 1 to the size of the array
+ 	- Check dependence analysis
 - Aliasing and pointers complicate things, often requiring ==interprocedural analysis==
 
 > [!note] Def-use chains
 > We can also define data dependence in terms of two sets: $def(S)$ (variables defined in this statement) and $use(S)$ (variables referenced in this statement). If a variable in $def(A)$ is later used in $use(B)$, there's a flow/data dependence from $A \to B$. This is transitive; if $A \to B$ and $B \to C$, we say there is a **def-use chain** from $A \to C$.
-> 
-> See https://piazza.com/class_profile/get_resource/hy7enxf648g7me/i2qodoub2q73x for more.
+>
+> See <https://piazza.com/class_profile/get_resource/hy7enxf648g7me/i2qodoub2q73x> for more.
 
 These dependences can be categorized as *loop-carried* or *loop-independent*.
 
@@ -236,33 +239,33 @@ Note that **there can be self-edges** in a data dependence graph!
 Okay. What can we use a PDG for?
 
 - **Detecting parallelism**.
-	- Any node not in a [strongly connected region](https://en.wikipedia.org/wiki/Strongly_connected_component) of both data and control dependencies can be vectorized.
-		- i.e., if some nodes don't either data or control depend on one another, they can be vectorized!
-	- With only a data dependence graph, you have to do "if-conversion" to turn control structure of program into data dependencies, which makes it difficult to recover original control structure after
-	- See [[ahoDragon10112007#Synchronization between parallel loops|Dragon §11.8]] for more details.
+ 	- Any node not in a [strongly connected region](https://en.wikipedia.org/wiki/Strongly_connected_component) of both data and control dependencies can be vectorized.
+  		- i.e., if some nodes don't either data or control depend on one another, they can be vectorized!
+ 	- With only a data dependence graph, you have to do "if-conversion" to turn control structure of program into data dependencies, which makes it difficult to recover original control structure after
+ 	- See [[ahoDragon10112007#Synchronization between parallel loops|Dragon §11.8]] for more details.
 - **Node splitting**
-	- We purposefully duplicate nodes to enable better parallelism, less IPC.
-	- Here's an example control flow graph and associated PDG: ![[Screenshot 2024-08-03 at 1.17.12 PM.png]]
-	- Here, `X = P`. We could duplicate the `X`, `D`, and `E` on both branches of `P` and eliminate `X`.
-	- But this isn't clear in the CFG.
-		- Either we have to duplicate `A`, `B`, and `C` going all the way down, or we have to try and move `X` earlier in the control flow graph.
-	- In the PDG, successors of a region node only need to be ordered in data-dependency order when running.
-		- We immediately know that `X` can follow `P`, since there's no data dependency on one another.
-		- Thus, we know we can move it up earlier in the CFG, and then do scalar propagation to eliminate `X` on both branches.
+ 	- We purposefully duplicate nodes to enable better parallelism, less IPC.
+ 	- Here's an example control flow graph and associated PDG: ![[Screenshot 2024-08-03 at 1.17.12 PM.png]]
+ 	- Here, `X = P`. We could duplicate the `X`, `D`, and `E` on both branches of `P` and eliminate `X`.
+ 	- But this isn't clear in the CFG.
+  		- Either we have to duplicate `A`, `B`, and `C` going all the way down, or we have to try and move `X` earlier in the control flow graph.
+ 	- In the PDG, successors of a region node only need to be ordered in data-dependency order when running.
+  		- We immediately know that `X` can follow `P`, since there's no data dependency on one another.
+  		- Thus, we know we can move it up earlier in the CFG, and then do scalar propagation to eliminate `X` on both branches.
 - **[[ahoDragonBookMachineindependent2007#^9d6c9d|Code motion]]**
-	- We can do loop-invariant code motion faster, and with arbitrary control flow!
-	- In general, we can move whatever wherever as long as we don't change the PDG!
+ 	- We can do loop-invariant code motion faster, and with arbitrary control flow!
+ 	- In general, we can move whatever wherever as long as we don't change the PDG!
 - **Loop fusion**
-	- We can join loops if:
-		- They're executed under same conditions
-		- There's no data dependence between loops
-		- They're executed the same number of times
-	- The first two are trivially checkable in a PDG.
-	- The last is also accomplished by checking the hierarchical PDG for e.g., if `do` loops iterate the same number of times
+ 	- We can join loops if:
+  		- They're executed under same conditions
+  		- There's no data dependence between loops
+  		- They're executed the same number of times
+ 	- The first two are trivially checkable in a PDG.
+ 	- The last is also accomplished by checking the hierarchical PDG for e.g., if `do` loops iterate the same number of times
 - **[[program slicing|Program slicing]]**
-	- See also: 
-	- A slice shows a set of statements that influence the value of a variable at a particular program point.
-	- We need to see what data and control flow dependencies lead to this variable!
+ 	- See also:
+ 	- A slice shows a set of statements that influence the value of a variable at a particular program point.
+ 	- We need to see what data and control flow dependencies lead to this variable!
 
 # Incremental data flow update & optimization
 
@@ -312,9 +315,9 @@ And now, here's the formalization:
 - First, let $d$ be a node in the "predicate is true" region, and consider pairs $(p, d)$ where $d$ is *output dependent* on $p$ and both have a data dependence successor $m$.
 - If $CP(d) = LCA(d, p)$, we have an issue: this implies $p$ can reach $m$ through $d$, which is incorrect; delete the edge $p \to m$.
 - How does this apply to our current situation?
-	- $CP(4)$ is `ENTRY`. $LCA(4, 1)$ is also `ENTRY`. Both $4$ and $1$ point to $9$ (data dependence).
-	- This implies we can get to $9$ through either just $4$, or $1, 4$. i.e., $1$ can reach $9$ through $4$.
-	- We should delete $1 \to 9$ since $1 \to 4 \to 9$ should be the only path.
+ 	- $CP(4)$ is `ENTRY`. $LCA(4, 1)$ is also `ENTRY`. Both $4$ and $1$ point to $9$ (data dependence).
+ 	- This implies we can get to $9$ through either just $4$, or $1, 4$. i.e., $1$ can reach $9$ through $4$.
+ 	- We should delete $1 \to 9$ since $1 \to 4 \to 9$ should be the only path.
 
 There's another case we have to consider too! For instance, see:
 

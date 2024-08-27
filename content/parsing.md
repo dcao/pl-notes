@@ -36,19 +36,19 @@ whereas for the AST, we're not concerned with actually representing syntax (henc
 ```
 
 > [!note] See also
-> https://en.wikipedia.org/wiki/Abstract_syntax_tree
+> <https://en.wikipedia.org/wiki/Abstract_syntax_tree>
 
 # Types of formal grammars
 
 > [!note] See also
-> https://en.wikipedia.org/wiki/Formal_grammar
+> <https://en.wikipedia.org/wiki/Formal_grammar>
 
 A formal grammar $G$ consists of a tuple $(N, \Sigma, P, S)$, where:
 
 - $N$ is a set of nonterminal symbols.
 - $\Sigma$ is a set of terminal symbols.
 - $P$ is a set of **production rules**, each of the form: $(\Sigma \cup N)^* N (\Sigma \cup N)^* \to (\Sigma \bigcup N)^*$
-	- A production rule maps at least one nonterminal, and potentially other (non)terminals, to a new set of (non)terminals.
+ 	- A production rule maps at least one nonterminal, and potentially other (non)terminals, to a new set of (non)terminals.
 - $S \in N$ is a distinguished **start symbol**.
 
 There's a hierarchy (Chomsky hierarchy) of grammars, scaling from more expressivity to more computability:
@@ -74,7 +74,10 @@ If we treat our production rules as rewrite rules, we can produce a *derivation*
 E = E + E | E * E | -E | (E) | id
 ```
 
-We can get a *derivation* for the term $-(\mathbf{id})$ as follows: $$ E \Rightarrow -E \Rightarrow -(E) \Rightarrow -(id) $$
+We can get a *derivation* for the term $-(\mathbf{id})$ as follows:
+$$
+E \Rightarrow -E \Rightarrow -(E) \Rightarrow -(id)
+$$
 This derivation corresponds to the following parse-tree:
 
 ```
@@ -101,9 +104,12 @@ Complex grammars often contain recursive rules. For instance, in arithmetic expr
 
 - A rule is **left recursive** if it's of the form $A \to A \alpha$ (using the same conventions for non-terminals and strings as above).
 - A rule is **right recursive** if it's of the form $A \to \alpha A$.
-	- $E \to E + E$ is both!
+ 	- $E \to E + E$ is both!
 
-We can convert left recursive rules into right recursive rules as follows. A left recursive grammar $$ A \to A \alpha \mid \beta $$
+We can convert left recursive rules into right recursive rules as follows. A left recursive grammar
+$$
+A \to A \alpha \mid \beta
+$$
 ...is equivalent to the following right recursive grammar: $$ \begin{aligned}
 A &\to \beta R \\
 R &\to \alpha R \mid \epsilon \\
@@ -119,10 +125,10 @@ There are a number of features that a parsing algorithm can have. One such featu
 ## Top-down vs. bottom-up
 
 > [!note] See also
-> Dragon §4.3, 4.4; https://stackoverflow.com/questions/5975741/what-is-the-difference-between-ll-and-lr-parsing
-> https://www.eecis.udel.edu/~cavazos/CISC672/lectures/Lecture-13.pdf
-> https://stackoverflow.com/questions/25965023/issue-with-left-recursion-in-top-down-parsing
-> https://en.wikipedia.org/wiki/Shift-reduce_parser
+> Dragon §4.3, 4.4; <https://stackoverflow.com/questions/5975741/what-is-the-difference-between-ll-and-lr-parsing>
+> <https://www.eecis.udel.edu/~cavazos/CISC672/lectures/Lecture-13.pdf>
+> <https://stackoverflow.com/questions/25965023/issue-with-left-recursion-in-top-down-parsing>
+> <https://en.wikipedia.org/wiki/Shift-reduce_parser>
 
 Additionally, a parsing algorithm can construct a parse tree in one of two directions. We can either go **top-down**, constructing the tree from the root to its leaves, or we can go **bottom-up**, constructing the tree from its leaves back up to the root. Let's go through that in detail.
 
@@ -209,17 +215,17 @@ Recursive-descent parsing is a form of top-down parsing. Here, we represent ever
 
 ```
 A():
-	'err: for each A-production: A -> X1 X2 ... Xk:
-		for each symbol Xi:
-			if Xi is nonterminal:
-				Xi()
-			elif Xi == current symbol a:
-				advance to next symbol
-			else:
-				backtrack input to before any of these nonterminals were applied
-				continue 'err
+ 'err: for each A-production: A -> X1 X2 ... Xk:
+  for each symbol Xi:
+   if Xi is nonterminal:
+    Xi()
+   elif Xi == current symbol a:
+    advance to next symbol
+   else:
+    backtrack input to before any of these nonterminals were applied
+    continue 'err
 
-	return err
+ return err
 ```
 
 Basically, each function is responsible for trying a production rule, checking if the terminals match, and calling other nonterminal functions. Notice how left-recursive rules will fuck this up: `A` might just call `A` over and over again!
@@ -273,9 +279,9 @@ For a specific class of grammars, we can automatically construct an efficient, p
 
 > [!note] What are $\operatorname{first}$ and $\operatorname{follow}$?
 > For any string of grammar symbols $\alpha$, $\operatorname{first}(\alpha)$ is the set of terminal symbols that all possible strings that can be derived from $\alpha$ start with.
-> 
+>
 > For a nonterminal $A$, $\operatorname{follow}(A)$ is the set of terminals $a$ that could follow $A$ in some derivation. That is, they appear in some derivation in the form: $S \overset{*}{\Rightarrow} \alpha A a \beta$.
-> 
+>
 > Basically, the last rule prevents us from doing right recursion.
 
 To parse this, we create a **parsing table** $M$ which takes a nonterminal $A$ and the current lookahead input symbol $a$, and returns a predicted production to apply at that point. We build this table as follows:
@@ -293,9 +299,9 @@ Here's an example LL(1) parsing table:
 
 > [!note] See also
 > This section comes entirely from [these CS 164 notes from Ras Bodik](https://homes.cs.washington.edu/~bodik/ucb/cs164/sp13/lectures/09-Datalog-CYK-Earley-sp13.pdf).
-> There's also this extra resource on Earley parsing: https://inst.eecs.berkeley.edu/~cs164/fa20/lectures/lecture6-2x2.pdf
+> There's also this extra resource on Earley parsing: <https://inst.eecs.berkeley.edu/~cs164/fa20/lectures/lecture6-2x2.pdf>
 
-These are both "famous" parsing algorithms that can handle *any* context-free grammar! 
+These are both "famous" parsing algorithms that can handle *any* context-free grammar!
 
 ### CYK parsing
 
@@ -339,21 +345,21 @@ The *edges* in CYK reduction correspond to the *nodes* in our parse tree.
 When actually implementing this algorithm:
 
 - Turn everything into Chomsky Normal Form to get to $O(n^3)$ time and $O(n^2)$ space.
-	- In CNF, all productions are either $A \to BC$, $A \to d$, or $S \to \epsilon$ (only start can derive $\epsilon$).
+ 	- In CNF, all productions are either $A \to BC$, $A \to d$, or $S \to \epsilon$ (only start can derive $\epsilon$).
 - Use dynamic programming to fill 2D array with solutions to subproblems.
 
 ### Earley parsers
 
 > [!note] See also
-> https://web.eecs.umich.edu/~weimerw/2015-4610/lectures/weimer-pl-earley-01.pdf
-> https://rahul.gopinath.org/post/2021/02/06/earley-parsing/
+> <https://web.eecs.umich.edu/~weimerw/2015-4610/lectures/weimer-pl-earley-01.pdf>
+> <https://rahul.gopinath.org/post/2021/02/06/earley-parsing/>
 
 CYK parsers may build parse subtrees that aren't part of the actual final parse tree! Some edges are extraneous.
 
 > [!note]- An example of this
 > ![[Screenshot 2024-08-09 at 12.41.56 PM.png]]
 
-By contrast, Earley parsers have $O(n^3)$ worst-case time, but can achieve $O(n)$ for deterministic context-free grammars, and $O(n^2)$ for unambiguous context-free (i.e., **LR($k$)**) grammars. At a high level, we process the input left-to-right (and not in arbitrary order), and only reduce productions with a chance to be in the parse tree. 
+By contrast, Earley parsers have $O(n^3)$ worst-case time, but can achieve $O(n)$ for deterministic context-free grammars, and $O(n^2)$ for unambiguous context-free (i.e., **LR($k$)**) grammars. At a high level, we process the input left-to-right (and not in arbitrary order), and only reduce productions with a chance to be in the parse tree.
 
 The big idea here is that we go through our input left-to-right. At each point in between input tokens, we keep track of some *state*: specifically, the possible production rules we could be in the middle of right now. We keep track of these rules and where we are in those rules at each point.
 
@@ -378,12 +384,30 @@ Basically, this means that after parsing an $\mathbf{id}$, we have a complete $T
 
 | cursor before index | state                                                                                                                       | explanation                                                                                                                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0                   | $$ \begin{aligned} E &\to \bullet T + \mathbf{id} \\ E &\to \bullet \mathbf{id} \\ T &\to \bullet E \\ \end{aligned} $$     |                                                                                                                                                                                                           |
-| 1                   | $$ \begin{aligned} E &\to T \bullet + \mathbf{id} \\ E &\to \mathbf{id} \bullet \\ T &\to E \bullet \\ \end{aligned} $$     |                                                                                                                                                                                                           |
-| 2                   | $$ E \to T + \bullet \mathbf{id} $$                                                                                         | At this index, the only possibility is that we're in the middle of the longer $E$ production rule, since that's the only one that recognizes a $+$.                                                       |
-| 3                   | $$ \begin{aligned} E &\to T + \mathbf{id} \bullet \\ T &\to E \bullet \\ E &\to T \bullet + \mathbf{id} \\ \end{aligned} $$ | We advance the dot from the above rule, getting us to the end of $E$. This also means that we're at the end of a $T$ rule too. Because of that, we can treat this as an in-progress parse of another $E$. |
-| 4                   | $$ E \to T + \bullet \mathbf{id} $$                                                                                         | Again, here the only possibility is advancing after the $+$ in that rule.                                                                                                                                 |
-| 5                   | $$ \begin{aligned} E &\to T + \mathbf{id} \bullet \\ T &\to E \bullet \\ E &\to T \bullet + \mathbf{id} \\ \end{aligned} $$ | Same as with `3`.                                                                                                                                                                                         |
+| 0                   |
+$$
+\begin{aligned} E &\to \bullet T + \mathbf{id} \\ E &\to \bullet \mathbf{id} \\ T &\to \bullet E \\ \end{aligned}
+$$     |                                                                                                                                                                                                           |
+| 1                   |
+$$
+\begin{aligned} E &\to T \bullet + \mathbf{id} \\ E &\to \mathbf{id} \bullet \\ T &\to E \bullet \\ \end{aligned}
+$$     |                                                                                                                                                                                                           |
+| 2                   |
+$$
+E \to T + \bullet \mathbf{id}
+$$                                                                                         | At this index, the only possibility is that we're in the middle of the longer $E$ production rule, since that's the only one that recognizes a $+$.                                                       |
+| 3                   |
+$$
+\begin{aligned} E &\to T + \mathbf{id} \bullet \\ T &\to E \bullet \\ E &\to T \bullet + \mathbf{id} \\ \end{aligned}
+$$ | We advance the dot from the above rule, getting us to the end of $E$. This also means that we're at the end of a $T$ rule too. Because of that, we can treat this as an in-progress parse of another $E$. |
+| 4                   |
+$$
+E \to T + \bullet \mathbf{id}
+$$                                                                                         | Again, here the only possibility is advancing after the $+$ in that rule.                                                                                                                                 |
+| 5                   |
+$$
+\begin{aligned} E &\to T + \mathbf{id} \bullet \\ T &\to E \bullet \\ E &\to T \bullet + \mathbf{id} \\ \end{aligned}
+$$ | Same as with `3`.                                                                                                                                                                                         |
 
 By doing this, we've avoided creating extraneous edges. We didn't recognize $\mathbf{id_{3}}$ or $\mathbf{id_{5}}$ as their own `T`, and we didn't parse the expression $\mathbf{id_{3}} + \mathbf{id_{5}}$.
 

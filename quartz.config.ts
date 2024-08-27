@@ -8,14 +8,14 @@ import * as Plugin from "./quartz/plugins"
  */
 const config: QuartzConfig = {
     configuration: {
-        pageTitle: "david's pl prelim notes",
+        pageTitle: "david's pl notes",
         enableSPA: true,
         enablePopovers: true,
         analytics: {
             provider: "plausible",
         },
         locale: "en-US",
-        baseUrl: "dcao.github.io/pl-prelim",
+        baseUrl: "dcao.github.io/pl-notes",
         ignorePatterns: ["private", "templates", ".obsidian"],
         defaultDateType: "created",
         theme: {

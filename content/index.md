@@ -20,6 +20,17 @@ I originally wrote these notes in preparation for the Berkeley PL Prelim, so the
 
 If you have any questions, feel free to email me (it's on my website linked above).
 
+> [!warning] Formatting caveats
+> As a consequence of me manually copy-pasting my notes to this site, there might be missing pages; this is unintentional, and you should let me know if you run into this!
+>
+> Additionally, type judgments/derivations will look weird---they're missing the horizontal line dividing consequence and consequent, because of LaTeX rendering weirdness with the static site generator I'm using. They'll look like this:
+> $$
+> \begin{prooftree} \AXC{$\Gamma(x) = T$} \UIC{$\Gamma \vdash x : T$} \end{prooftree}
+> $$
+>
+> Apologies in advance :^)
+
+
 ## Extra Prelim-related notes
 
 From the syllabus:

@@ -47,7 +47,10 @@ With Curry-Howard, a formula has a proof iff the corresponding type is inhabited
 
 Propositions are types and proofs are terms. This is *constructive logic*, or *intuitionistic logic*, or *propositional logic*. This doesn't include universal quantifiers, however.
 
-With dependent types, we upgrade to a stronger logic: first-order logic (i.e., *predicate logic*), with quantified variables. If we want to prove $\forall x:A. B(x)$ for some predicate $B$, we just need to show that $\Pi x: A. B(x)$ is inhabited! For instance, showing that $\forall x: Nat. x + 0 = x$ requires a proof of the type: $$ \Pi_{x:Nat}\ x + 0 = x $$
+With dependent types, we upgrade to a stronger logic: first-order logic (i.e., *predicate logic*), with quantified variables. If we want to prove $\forall x:A. B(x)$ for some predicate $B$, we just need to show that $\Pi x: A. B(x)$ is inhabited! For instance, showing that $\forall x: Nat. x + 0 = x$ requires a proof of the type:
+$$
+\Pi_{x:Nat}\ x + 0 = x
+$$
 We need a function that takes in a natural number $x$ and returns a proof that the number $x$ plus zero equals itself!
 
 ## Logical frameworks
@@ -69,13 +72,13 @@ This is basically what Haskell has (minus universal quantification!). The highli
 - We introduce *kinds*: types of types. A type has kind $*$, and a type family has kind $\Pi_{x:T}\ T$.
 - Contexts keep track of the *kind* of type variables, since they could stand in for a type *or* a type family.
 - Types can be a dependent product type, or a type family application.
-	- A dependent product type, like `init` has kind $*$.
-	- But a type family, like `Vector`, has kind $\Pi_{x:T}\ K$.
-	- Note that we're using $\Pi_{}$ for both dependent product types and type family kinds!
+ 	- A dependent product type, like `init` has kind $*$.
+ 	- But a type family, like `Vector`, has kind $\Pi_{x:T}\ K$.
+ 	- Note that we're using $\Pi_{}$ for both dependent product types and type family kinds!
 - We add a bunch new rules.
-	- We add rules for kind well-formedness. A kind is either $*$, or a function to a well-formed type $\Pi_{x:T}\ K$.
-	- We add rules for checking the *kinds* of types—type variable lookup, dependent product type introduction, type family elimination, and *conversion under kind equivalence* (see below)
-	- For typing, application also performs substitution into the output type. And we add *conversion under kind equivalence*.
+ 	- We add rules for kind well-formedness. A kind is either $*$, or a function to a well-formed type $\Pi_{x:T}\ K$.
+ 	- We add rules for checking the *kinds* of types—type variable lookup, dependent product type introduction, type family elimination, and *conversion under kind equivalence* (see below)
+ 	- For typing, application also performs substitution into the output type. And we add *conversion under kind equivalence*.
 
 ## Equivalence
 
@@ -112,7 +115,7 @@ The main change is instead of having arbitrary type/kind equivalence rules, we c
 
 Weak-head normal form is a subset of beta reduction, where we only do beta reduction on the head of an expression:
 
--  $$\begin{prooftree} \AXC{$t_{1} \to_{wh} t_{1}'$} \UIC{$t_{1}\ t_{2} \to_{wh} t_{1}'\ t_{2}$} \end{prooftree}$$
+- $$\begin{prooftree} \AXC{$t_{1} \to_{wh} t_{1}'$} \UIC{$t_{1}\ t_{2} \to_{wh} t_{1}'\ t_{2}$} \end{prooftree}$$
 - $$\begin{prooftree} (\lambda x:T_{1}. t_{1})\ t_{2} \to_{wh} [x \mapsto t_{2}]t_{1} \end{prooftree}$$
 
 This is why the last two rules have "$s$/$t$ not a $\lambda$": by WHNF evaluation, they can't be!
@@ -139,14 +142,14 @@ Algorithmic typing is straightforward, except we have to extend beta reduction a
 
 > [!note] An aside: "sum" and "product"
 > One question you might have: why the fuck is a dependent product a function type, and a dependent sum a product type? Well, [this StackExchange post](https://cs.stackexchange.com/questions/81112/why-product-type-is-a-dependent-sum) has some insight for us.
-> 
-> Basically, 
+>
+> Basically,
 
 # The calculus of constructions
 
 > [!note] See also
-> https://hbr.github.io/Lambda-Calculus/cc-tex/cc.pdf
-> https://coq.inria.fr/doc/v8.9/refman/language/cic.html
+> <https://hbr.github.io/Lambda-Calculus/cc-tex/cc.pdf>
+> <https://coq.inria.fr/doc/v8.9/refman/language/cic.html>
 
 So far, we've seen:
 
@@ -163,8 +166,8 @@ But notice that in λLF, we're not able to define functions that take types as i
 CC introduces a few key extensions:
 
 - Two new types: **propositions** and **proofs**. A proposition has kind $*$, while a proof is a constructor $\Pi_{x:Prop}\ *$.
-	- Elements of $Prop$ represent propositions and "datatypes" like `Nat`s.
-	- Elements of $Prf\ (a : Prop)$ represent proofs—the inhabitants of the propositions and datatypes above.
+ 	- Elements of $Prop$ represent propositions and "datatypes" like `Nat`s.
+ 	- Elements of $Prf\ (a : Prop)$ represent proofs—the inhabitants of the propositions and datatypes above.
 - **Universal quantification**. It's added to the term language, but really, it acts on types.
 
 $Prop$ and $Prf$ are ways to get types as terms—the terms that inhabit $Prop$ are themselves types, and the terms that inhabit $Prf\ p$ are values in $Prop$.
@@ -225,10 +228,13 @@ We can also define inductive type families, like `vector : Prf nat -> Prop`.
 
 We can add sigma types (remember: dependent sums, the dependent version of tuples).
 
-The **extended calculus of constructions** (ECC) contains sigma types and let's us do $\Pi_{}$ and $\Sigma_{}$ quantification over *kinds*. Now, we have an infinite universe of kinds (i.e., types): $*_{1}, *_{2}, \dots$ This is just type universes! `Type : Type 1 : Type 2 : ...`. In this system, we could say something like: $$ \Sigma_{X:*_{3}}\ X:*_{4} $$
+The **extended calculus of constructions** (ECC) contains sigma types and let's us do $\Pi_{}$ and $\Sigma_{}$ quantification over *kinds*. Now, we have an infinite universe of kinds (i.e., types): $*_{1}, *_{2}, \dots$ This is just type universes! `Type : Type 1 : Type 2 : ...`. In this system, we could say something like:
+$$
+\Sigma_{X:*_{3}}\ X:*_{4}
+$$
 
 > [!note] See also
-> https://www.pls-lab.org/Extended_calculus_of_constructions
+> <https://www.pls-lab.org/Extended_calculus_of_constructions>
 
 # Pure type systems
 
@@ -253,12 +259,12 @@ Things to note:
 - In PTS, there are three syntactic categories: **terms**, **sorts**, and **contexts**.
 - Sorts are used to distinguish categories of term.
 - In λP specifically, there are two sorts: the sort of types (i.e., kinds) and the sort of kinds.
-	- Instead of saying $\Gamma \vdash T :: *$, we say $\Gamma \vdash T : *$, denoting that $T$ is a type.
-	- Instead of saying $\Gamma \vdash K$ for kind well-formedness, we say $\Gamma \vdash K : \square$, denoting that $K$ is a kind.
+ 	- Instead of saying $\Gamma \vdash T :: *$, we say $\Gamma \vdash T : *$, denoting that $T$ is a type.
+ 	- Instead of saying $\Gamma \vdash K$ for kind well-formedness, we say $\Gamma \vdash K : \square$, denoting that $K$ is a kind.
 - The interesting part is pi type introduction.
-	- $(s_{i}, s_{j})$ can be either $(*, *)$ or $(*, \square)$.
-	- When it's the former, we get first order dependent product types, from a term to a term
-	- When it's the latter, we get type families, from a term to a type.
+ 	- $(s_{i}, s_{j})$ can be either $(*, *)$ or $(*, \square)$.
+ 	- When it's the former, we get first order dependent product types, from a term to a term
+ 	- When it's the latter, we get type families, from a term to a type.
 - The conversion rule is defined between untyped terms.
 
 We can recover all the lambda cube systems based on what values $(s_{i}, s_{j})$ can take on!

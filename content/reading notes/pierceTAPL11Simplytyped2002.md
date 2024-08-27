@@ -31,13 +31,18 @@ How can we figure out stuck terms (e.g., `pred false`) without evaluation? For o
 > The typing relation $t : T$ means that $t$ has type $T$. This relation is defined using *inference rules*, like with evaluation.
 
 - A term is *well-typed* if $\exists t. t : T$.
-- The typing relations go from smaller to bigger, for instance: $$ \begin{prooftree} \AXC{$t_{1} : Nat$} \UIC{$\verb|succ|\ t_{1} : Nat$} \end{prooftree} $$
-	- Inversely, we can derive lemmas that "invert" this relation, for instance, if `if t1 then t2 else t3 : R`, then the statements `t1 : Bool`, `t2, t3 : R` hold.
-	- These are *generation lemmas* - they show how to calculate the types of terms!
-	- These generation lemmas are what we use when building type-checkers are stuff. The derivation rules operate "backwards" to how a type-checker would operate.
+- The typing relations go from smaller to bigger, for instance:
+
+$$
+\begin{prooftree} \AXC{$t_{1} : Nat$} \UIC{$\verb|succ|\ t_{1} : Nat$} \end{prooftree}
+$$
+ - Inversely, we can derive lemmas that "invert" this relation, for instance, if `if t1 then t2 else t3 : R`, then the statements `t1 : Bool`, `t2, t3 : R` hold.
+ - These are *generation lemmas* - they show how to calculate the types of terms!
+ - These generation lemmas are what we use when building type-checkers are stuff. The derivation rules operate "backwards" to how a type-checker would operate.
+
 - > "*statements* (aka *judgments*) are formal assertions about the typing of programs, *typing rules* are implications between statements, and *derivations* are deductions based on typing rules"
 - **Uniqueness of types**: each term has at most one type, and one derivation.
-	- This is not true in the general case (e.g., subtyping)
+ 	- This is not true in the general case (e.g., subtyping)
 
 Here are the typing rules for the arithmetic expr lang:
 
@@ -47,10 +52,10 @@ Here are the typing rules for the arithmetic expr lang:
 
 > [!definition]
 > What is type safety? Type safety is the property that *well-typed terms do not get stuck*. We do this basically via induction, using two steps:
-> 
+>
 > - **Progress**: A well-typed term is not stuck—it's either a value or can take an evaluation step
 > - **Preservation** (aka *subject reduction*): If a well-typed term takes an evaluation step, the resulting term is also well-typed.
-> 	- The resulting term doesn't necessarily need to have the same type (e.g., in subtyping), but for this example, it should.
+>  	- The resulting term doesn't necessarily need to have the same type (e.g., in subtyping), but for this example, it should.
 
 To help with proofs, we define the **canonical forms** of our types—the well-typed values of these types. Think of these like the ADT definition:
 
@@ -71,15 +76,15 @@ We proceed with induction on the derivation of $t : T$. The last step of $t : T$
 
 - In T-True, T-False, and T-Zero, $t$ is a value, so we're done.
 - For T-If, by the induction hypothesis, either $t_{1}$ is a value or $\exists t_{1}'. t_{1} \to t_{1}'$.
-	- If $t_{1}$ is a value, it must be one of the canonical forms for `Bool`, meaning either E-IfTrue or E-IfFalse applies.
-	- If $t_{1} \to t_{1}'$, E-If applies.
-	- In either case, an eval step exists.
+ 	- If $t_{1}$ is a value, it must be one of the canonical forms for `Bool`, meaning either E-IfTrue or E-IfFalse applies.
+ 	- If $t_{1} \to t_{1}'$, E-If applies.
+ 	- In either case, an eval step exists.
 - For T-Succ, by the induction hypothesis, $t_{1}$ is a value or can evaluate to $t_{1}'$.
-	- If it's a value, by the canonical forms lemma, `succ t1` is also a value (i.e., value by construction)
-	- Otherwise, E-Succ applies.
+ 	- If it's a value, by the canonical forms lemma, `succ t1` is also a value (i.e., value by construction)
+ 	- Otherwise, E-Succ applies.
 - For T-Pred, by the induction hypothesis, $t_{1}$ is a value or can evaluate to $t_{1}'$.
-	- If it's a value, by canonical forms lemma, it's either `0` (E-PredZero) or `succ nv1` (E-PredSucc)
-	- Otherwise, E-Pred applies.
+ 	- If it's a value, by canonical forms lemma, it's either `0` (E-PredZero) or `succ nv1` (E-PredSucc)
+ 	- Otherwise, E-Pred applies.
 - Same for T-IsZero.
 
 ### Preservation for arithmetic
@@ -89,25 +94,25 @@ Let $t : T$. We want to show if $t : T$ and $t \to t'$, then $t' : T$.
 Again, we do induction on a derivation of $t : T$. We assume preservation holds for subderivations of the current derivation—at any point, if proving preservation involves looking at a subterm $s$ that is well-typed ($s : S$) and evaluates to $s \to s'$, we assume the induction hypothesis (preservation) holds for that term $s$. This works by structural induction—if you can show preservation holds for a term given its subterms, you can recurse all the way down to the base case. We do case analysis on the last step of the typing derivation.
 
 - In T-True, `t = true` and `T = Bool`. It's already a value and there's no $t \to t'$, so it's true.
-	- Same reasoning applies for T-Zero.
+ 	- Same reasoning applies for T-Zero.
 - In T-If, since we know `if t1 then t2 else t3` has type $T$, we also must know that $t_{1} : Bool$ and $t_{2}, t_{3} : T$. Since we know that $t \to t'$, there are three possible evaluation rules that could apply at this point.
-	- If E-IfTrue applies, $t_{1} = true$ and $t' = t_{2}$. $t_{2} : T$ from the subderivation, so we're good.
-	- If E-If applies, $t_{1} \to t_{1}'$ and $t' = \verb|if|\ t_{1}'\ \verb|then|\ t_{2}\ \verb|else|\ t_{3}$. By the IH, $t_{1}' : Bool$. Then, by T-If, this whole expr $t' : T$.
+ 	- If E-IfTrue applies, $t_{1} = true$ and $t' = t_{2}$. $t_{2} : T$ from the subderivation, so we're good.
+ 	- If E-If applies, $t_{1} \to t_{1}'$ and $t' = \verb|if|\ t_{1}'\ \verb|then|\ t_{2}\ \verb|else|\ t_{3}$. By the IH, $t_{1}' : Bool$. Then, by T-If, this whole expr $t' : T$.
 - In T-Succ, there are two possibilities.
-	- If $t_{1}$ is already a value, $\verb|succ|\ t_{1}$ is a value too and there's no $t'$.
-	- Otherwise, E-Succ applies and $t_{1} \to t_{1}'$. From T-Succ we know that $t_{1} : Nat$, and by preservation IH this means $t_{1}' : Nat$. And by T-Succ this means that $\verb|succ|\ t_{1}' : Nat$.
+ 	- If $t_{1}$ is already a value, $\verb|succ|\ t_{1}$ is a value too and there's no $t'$.
+ 	- Otherwise, E-Succ applies and $t_{1} \to t_{1}'$. From T-Succ we know that $t_{1} : Nat$, and by preservation IH this means $t_{1}' : Nat$. And by T-Succ this means that $\verb|succ|\ t_{1}' : Nat$.
 
 > [!note]
 > You don't need to do induction on typing derivations; you can do induction on *evaluation* derivations too!
 
 - Note that while subject reduction holds, subject expansion doesn't always hold.
-	- Evaluation can "erase" ill-typed terms (see [here](https://en.wikipedia.org/wiki/Subject_reduction))
-	- For instance, `t = if true then 0 else false`.
-	- By E-IfTrue, `t' = 0`, and by canonical lemma, `t' : Nat`.
-	- But `t` is stuck!
+ 	- Evaluation can "erase" ill-typed terms (see [here](https://en.wikipedia.org/wiki/Subject_reduction))
+ 	- For instance, `t = if true then 0 else false`.
+ 	- By E-IfTrue, `t' = 0`, and by canonical lemma, `t' : Nat`.
+ 	- But `t` is stuck!
 - If you're doing big-step evaluation, swap out $t \to t'$ with $t \Downarrow t'$.
 - If you have an explicit `wrong` term that is generated whenever you get stuck, progress must evaluate to a non-wrong term.
-	- e.g., ![[Screenshot 2024-06-18 at 2.39.20 PM.png]]
+ 	- e.g., ![[Screenshot 2024-06-18 at 2.39.20 PM.png]]
 
 # § 9. Simply Typed Lambda-Calculus
 
@@ -119,11 +124,17 @@ First, let's define the typing context stuff real quick.
 
 > [!definition]
 > A **typing context $\Gamma$** (aka *type environment*) is a sequence of variables and their types. The **comma operator** extends $\Gamma$ by adding a binding on the right. The empty context $\emptyset$ can be omitted.
-> 
+>
 > This context can be conceptualized as a set of pairs, and thus a function/relation (with a domain and range) from variables to types.
 
-Let's look at the typing judgment for abstractions, T-Abs: $$ \begin{prooftree} \AXC{$\Gamma, x:T_{1} \vdash t_{2}:T_{2}$} \UIC{$\Gamma \vdash \lambda x:T_{1}. t_{2}:T_{1} \to T_{2}$} \end{prooftree} $$
-This captures the intuitive statement: "if $t_{2}:T_{2}$ assuming that, among other things, $x:T_{1}$, then we know that the abstraction has type $T_{1} \to T_{2}$." One thing you might ask is why not format it like this: $$ \begin{prooftree} \AXC{$x:T_{1}$} \AXC{$t_{2}:T_{2}$} \BIC{$\lambda x:T_{1}. t_{2}:T_{1} \to T_{2}$} \end{prooftree} $$
+Let's look at the typing judgment for abstractions, T-Abs:
+$$
+\begin{prooftree} \AXC{$\Gamma, x:T_{1} \vdash t_{2}:T_{2}$} \UIC{$\Gamma \vdash \lambda x:T_{1}. t_{2}:T_{1} \to T_{2}$} \end{prooftree}
+$$
+This captures the intuitive statement: "if $t_{2}:T_{2}$ assuming that, among other things, $x:T_{1}$, then we know that the abstraction has type $T_{1} \to T_{2}$." One thing you might ask is why not format it like this:
+$$
+\begin{prooftree} \AXC{$x:T_{1}$} \AXC{$t_{2}:T_{2}$} \BIC{$\lambda x:T_{1}. t_{2}:T_{1} \to T_{2}$} \end{prooftree}
+$$
 We format it the first way because $t_{2}$'s type depends on $t_{1}$! They're not just independent clauses. $t_{2}$ references $x$, and needs to *assume* that in its evaluation/typing environment, $t_{2} : T_{1}$.
 
 The other typing rules are straightforward.
@@ -135,12 +146,12 @@ The other typing rules are straightforward.
 These are the same lemmas we've seen before:
 
 - **Inversion**: "if a term of this form is well-typed, its subterms must have types of these forms"
-	- e.g., if $t_{1}\ t_{2} : T_{12}$, then $t_{1} : T_{11} \to T_{12}$ and $t_{2} : T_{11}$.
-	- Reversing the direction of derivations.
+ 	- e.g., if $t_{1}\ t_{2} : T_{12}$, then $t_{1} : T_{11} \to T_{12}$ and $t_{2} : T_{11}$.
+ 	- Reversing the direction of derivations.
 - **Uniqueness**: In a given context $\Gamma$, a term $t$ with all free variables in $\Gamma$ must have at most one type.
 - **Canonical forms**:
-	- Bools are true or false
-	- If $v : T_{1} \to T_{2}$, $v = \lambda x:T_{1}. t_{2}$.
+ 	- Bools are true or false
+ 	- If $v : T_{1} \to T_{2}$, $v = \lambda x:T_{1}. t_{2}$.
 
 ## Progress for STLC
 
@@ -156,29 +167,30 @@ Proving preservation requires a few lemmas first:
 We also show a more ambitious lemma:
 
 - **Preservation under substitution**: we want to show that if $\Gamma, x : S \vdash t : T$ and $\Gamma \vdash s : S$, then $\Gamma \vdash [x \mapsto s]t : T$. ^1b85cb
-	- Let's do case analysis on the first judgment.
-		- In T-Var, $t$ must be a variable, since $\Gamma$ maps from variables to types.
-			- Either $t = x$, in which case we already know $\Gamma \vdash s : S$ from the assumptions
-			- Or not, in which case no substitution happens and we're fine.
-		- In T-Abs, we can assume $x \neq y$ and $y \not\in FV(s)$.
-			- $t = \lambda y:T_{2}. t_{1}$
-			- $T = T_{2} \to T_{1}$
-			- $\Gamma, x : S, y : T_{2} \vdash t_{1} : T_{1}$.
-			- We can show $\Gamma, y : T_{2} \vdash [x \mapsto s]t_{1}:T_{1}$ by the induction hypothesis
-				- We do this by weakening $\Gamma \vdash s : S$ to $\Gamma, y : T_{2} \vdash s : S$.
-			- Thus, by T-Abs, $\Gamma \vdash \lambda y:T_{2}. [x \mapsto s] t_{1} : T$.
-			- By definition of substitution, running the subst on the whole abstraction is the same as running the subst on its body if $x \neq y$. So we're good!
-		- etc.
+ 	- Let's do case analysis on the first judgment.
+  		- In T-Var, $t$ must be a variable, since $\Gamma$ maps from variables to types.
+   			- Either $t = x$, in which case we already know $\Gamma \vdash s : S$ from the assumptions
+   			- Or not, in which case no substitution happens and we're fine.
+  		- In T-Abs, we can assume $x \neq y$ and $y \not\in FV(s)$.
+   			- $t = \lambda y:T_{2}. t_{1}$
+   			- $T = T_{2} \to T_{1}$
+   			- $\Gamma, x : S, y : T_{2} \vdash t_{1} : T_{1}$.
+   			- We can show $\Gamma, y : T_{2} \vdash [x \mapsto s]t_{1}:T_{1}$ by the induction hypothesis
+    				- We do this by weakening $\Gamma \vdash s : S$ to $\Gamma, y : T_{2} \vdash s : S$.
+   			- Thus, by T-Abs, $\Gamma \vdash \lambda y:T_{2}. [x \mapsto s] t_{1} : T$.
+   			- By definition of substitution, running the subst on the whole abstraction is the same as running the subst on its body if $x \neq y$. So we're good!
+  		- etc.
 
 Apparently showing preservation is similar to [[#Preservation for arithmetic]] at this point.
 
 ## The Curry-Howard correspondence
 
 - The $\to$ type constructor has two kinds of typing rules:
-	- An **introduction rule** T-Abs showing how elements of this type can be *created*
-	- An **elimination rule** T-App showing how elements of this type can be *consumed*.
+ 	- An **introduction rule** T-Abs showing how elements of this type can be *created*
+ 	- An **elimination rule** T-App showing how elements of this type can be *consumed*.
 
 Proofs have very computational vibes!
+
 - Proving $P$ means finding *concrete* evidence for $P$.
 - Proving $P \implies Q$ means, if you're given this concrete evidence (i.e., a proof) of $P$, transforming it somehow into concrete evidence of $Q$.
 - Proving $P \land Q$ means finding both $P$ and $Q$.
@@ -214,7 +226,7 @@ These extensions (almost) all introduce *derived forms*—syntax sugar!
 
 - Strings? Floats? Things with opaque inner workings.
 - We consider these as **uninterpreted**, **unknown**, or **atomic** base types, in the set $\mathcal{A}$ with no primitive operations on them at all.
-	- i.e., can't (de)construct them like nats or anything like that.
+ 	- i.e., can't (de)construct them like nats or anything like that.
 
 ## Unit type
 
@@ -237,7 +249,10 @@ Explicitly saying an expression has a type: `t as T`. Pretty simple.
 
 ![[Screenshot 2024-06-18 at 3.44.45 PM.png]]
 
-Straightforward. But expressing this as a derived form isn't so straightforward. Naively, we'd want to do this: $$ \verb|let|\ x = t_{1}\ \verb|in|\ t_{2} \stackrel{\text{def}}{=} (\lambda x:T_{1}. t_{2})\ t_{1} $$
+Straightforward. But expressing this as a derived form isn't so straightforward. Naively, we'd want to do this:
+$$
+\verb|let|\ x = t_{1}\ \verb|in|\ t_{2} \stackrel{\text{def}}{=} (\lambda x:T_{1}. t_{2})\ t_{1}
+$$
 But $T_{1}$ comes not from the syntax purely, but from the info from the typechecker! So really this isn't a transformation on terms, but on *typing derivations*. This derived form transforms a derivation involving `let` into one that uses abstraction and application:
 
 ![[Screenshot 2024-06-18 at 3.46.38 PM.png]]

@@ -25,12 +25,14 @@ In particular, we might want a record `{x = 0, y = 1}` to work as an argument to
 
 > [!definition] The principle of safe substitution
 > One definition of the subtyping relation $S <: T$ is that any term of type $S$ can be used where a type $T$ is expected. This is the *principle of safe substitution*.
-> 
+>
 > Another intuition is that every value described by $S$ is also described by $T$. This *subset semantics* is mostly sufficient.
 
 We formalize the subtyping relation with respect to the typing relation with the **rule of subsumption**:
 
-$$ \begin{prooftree} \AXC{$\Gamma \vdash t : S$} \AXC{$S <: T$} \RightLabel{\quad (T-Sub)} \BIC{$\Gamma \vdash t : T$}  \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$\Gamma \vdash t : S$} \AXC{$S <: T$} \RightLabel{\quad (T-Sub)} \BIC{$\Gamma \vdash t : T$}  \end{prooftree}
+$$
 
 ## The subtype relation
 
@@ -38,19 +40,27 @@ This relation is formalized as a bunch of inference rules for deriving statement
 
 For records, we have three subtyping rules. First, we have the *width subtyping* rule, which intuitively states that more specific record types (i.e., records with more fields) are subtypes of less specific record types:
 
-$$ \begin{prooftree} \AXC{} \RightLabel{\quad (S-RcdWidth)} \UIC{$\{ l_{i} : T_{i} \mid i \in 1..n + k \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{} \RightLabel{\quad (S-RcdWidth)} \UIC{$\{ l_{i} : T_{i} \mid i \in 1..n + k \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$} \end{prooftree}
+$$
 
 Second, we have the *depth subtyping* rule, which states that the types of individual fields between records can vary, so long as they are correspondingly subtypes:
 
-$$ \begin{prooftree} \AXC{for each $i$ \quad $S_{i} <: T_{i}$} \RightLabel{\quad (S-RcdDepth)} \UIC{$\{ l_{i} : S_{i} \mid i \in 1..n \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{for each $i$ \quad $S_{i} <: T_{i}$} \RightLabel{\quad (S-RcdDepth)} \UIC{$\{ l_{i} : S_{i} \mid i \in 1..n \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$} \end{prooftree}
+$$
 
 Finally, we have a *record permutation* subtyping rule, which just states that order of record fields doesn't matter.
 
-$$ \begin{prooftree} \AXC{$\{ k_{j} : S_{j} \mid j \in 1..n \}$ is a permutation of $\{ l_{i} : T_{i} \mid i \in 1..n \}$} \RightLabel{\quad (S-RcdPerm)} \UIC{$\{ k_{j} : S_{j} \mid j \in 1..n \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$}\end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$\{ k_{j} : S_{j} \mid j \in 1..n \}$ is a permutation of $\{ l_{i} : T_{i} \mid i \in 1..n \}$} \RightLabel{\quad (S-RcdPerm)} \UIC{$\{ k_{j} : S_{j} \mid j \in 1..n \} <: \{ l_{i} : T_{i} \mid i \in 1..n \}$}\end{prooftree}
+$$
 
 Function/arrow types have a slightly counterintuitive subtyping rule:
 
-$$ \begin{prooftree} \AXC{$T_{1} <: S_{1}$} \AXC{$S_{2} <: T_{2}$} \BIC{$S_{1} \to S_{2} <: T_{1} \to T_{2}$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$T_{1} <: S_{1}$} \AXC{$S_{2} <: T_{2}$} \BIC{$S_{1} \to S_{2} <: T_{1} \to T_{2}$} \end{prooftree}
+$$
 
 Remember that the core intuition of subtyping is: "if $S$ can be used wherever $T$ can be used, $S <: T$." Arrow types are *contravariant* on the argument type (the subtype relation is reversed) because to ensure that $S$ can be used wherever $T$ is, $S$ must take *at least* as many possible arguments that $T$ can. Then, following intuition, arrow types are *covariant* on the return type.
 
@@ -64,11 +74,11 @@ In which we prove preservation and progress.
 ## Top and Bottom
 
 - Why `Top`?
-	- It's basically `Object` in Java, etc.
-	- It's useful when combining subtyping with parametric polymorphism
+ 	- It's basically `Object` in Java, etc.
+ 	- It's useful when combining subtyping with parametric polymorphism
 - Why `Bottom`?
-	- Corresponds to the never type `!`/`Infallible` in Rust
-	- Can't be constructed, can be the result for error values.
+ 	- Corresponds to the never type `!`/`Infallible` in Rust
+ 	- Can't be constructed, can be the result for error values.
 
 ## Subtyping & other features
 
@@ -78,15 +88,21 @@ Without subtyping, it's basically just documentation and a guide to a compiler f
 
 For instance, we can *upcast* a type to its supertype. In our typing judgments, this means combining a straightforward typing judgment and a subtype judgment:
 
-$$ \begin{prooftree} \AXC{$\vdots$} \UIC{$\Gamma \vdash t : S$} \AXC{$\vdots$} \UIC{$\Gamma \vdash S <: T$} \BIC{$\Gamma \vdash t : T$} \UIC{$\Gamma \vdash t\ \verb|as|\ T : T$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$\vdots$} \UIC{$\Gamma \vdash t : S$} \AXC{$\vdots$} \UIC{$\Gamma \vdash S <: T$} \BIC{$\Gamma \vdash t : T$} \UIC{$\Gamma \vdash t\ \verb|as|\ T : T$} \end{prooftree}
+$$
 
 Less straightforwardly, we can *downcast* a type to its subtype. At compile time, we just believe the user:
 
-$$ \begin{prooftree} \AXC{$\Gamma \vdash t : S$} \UIC{$\Gamma \vdash t_{1}\ \verb|as|\ T : T$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$\Gamma \vdash t : S$} \UIC{$\Gamma \vdash t_{1}\ \verb|as|\ T : T$} \end{prooftree}
+$$
 
 Then in our semantics, we only evaluate an ascription if, at runtime, the expression has the correct type:
 
-$$ \begin{prooftree} \AXC{$\vdash t : T$} \UIC{$t_{1}\ \verb|as|\ T \to t_{1}$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$\vdash t : T$} \UIC{$t_{1}\ \verb|as|\ T \to t_{1}$} \end{prooftree}
+$$
 
 This loses us progress, since a well-typed term might get stuck evaluating an erroneous type ascription. However, we can recover that back by either throwing an error or replacing downcasting with a type-testing operator (e.g.., Python's `is` operator):
 
@@ -106,7 +122,9 @@ Similar to records, but variant types with *fewer* variants are subtypes of thos
 
 An example where a type constructor isn't covariant or contravariant, but *invariant*:
 
-$$ \begin{prooftree} \AXC{$S_{1} <: T_{1}$} \AXC{$T_{1} <: S_{1}$} \BIC{$\verb|Ref|\ S_{1} <: \verb|Ref|\ T_{1}$} \end{prooftree} $$
+$$
+\begin{prooftree} \AXC{$S_{1} <: T_{1}$} \AXC{$T_{1} <: S_{1}$} \BIC{$\verb|Ref|\ S_{1} <: \verb|Ref|\ T_{1}$} \end{prooftree}
+$$
 
 We still involve subtyping stuff so we can do field/variant reordering and all that, but we demand that $S_{1}$ and $T_{1}$ are otherwise equivalent. This is because when reading, we need $S_{1} <: T_{1}$, but when writing, we need $T_{1} <: S_{1}$.
 
@@ -153,7 +171,9 @@ An **intersection type** $T_{1} \land T_{2}$ is inhabited by terms belonging to 
 
 For functions, we also have:
 
-$$ S \to T_{1} \land S \to T_{2} <: S \to (T_{1} \land T_{2}) $$
+$$
+S \to T_{1} \land S \to T_{2} <: S \to (T_{1} \land T_{2})
+$$
 
 > The intuition behind this rule is that, if we know a term has the function types S→T1 and S→T2, then we can certainly pass it an S and expect to get back both a T1 and a T2.
 
@@ -203,9 +223,9 @@ Because of how we've implemented record types, you can add another method and it
 
 > [!note] An aside on nominal v. structural type systems
 > A **nominal** type system is a system where names matter. For instance, if you defined two classes with the same fields `fst : Int`, `snd : Int`, they would not be equivalent, since they're *named* different.
-> 
+>
 > A **structural** type system operates directly on the structure of types. Thus, two classes (or indeed, two records) with the same fields would be considered equivalent.
-> 
+>
 > *See §19.3 for further discussion of this topic.*
 
 ## Grouping instance variables
