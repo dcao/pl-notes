@@ -2,7 +2,7 @@
 
 import { QuartzTransformerPlugin } from "../types"
 
-const dollarsRegex = new RegExp(/(.+)(\$\$)(.+)/g);
+const dollarsRegex = new RegExp(/\s?\$\$\s?/g);
 
 export const DisplayMathNewline: QuartzTransformerPlugin = () => {
     return {
@@ -14,7 +14,7 @@ export const DisplayMathNewline: QuartzTransformerPlugin = () => {
                 src = src.toString()
             }
 
-            src = src.replace(dollarsRegex, "$1\n$2\n$3");
+            src = src.replace(dollarsRegex, "\n$$$$\n");
 
             return src;
         }
