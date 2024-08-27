@@ -14,7 +14,7 @@ In either case, this site has a bunch of resources that might be helpful for you
 - A **syllabus** (see below) of different topics and readings that cover a broad range of PL topics.
 - **Reading notes** on individual readings with respect to these topics.
 - **Topic notes** that synthesize multiple (some of the reading notes do this as well)
-- **Study guides** that summarize 
+- **Study guides** that summarize all of the different topics mentioned here (good as a guided index into the rest of the notes).
 
 I originally wrote these notes in preparation for the Berkeley PL Prelim, so they're provided *as-is*; I basically haven't changed them since I copy-pasted them here, so a lot of them might make reference to Prelim-related things.
 
@@ -29,7 +29,6 @@ If you have any questions, feel free to email me (it's on my website linked abov
 > $$
 >
 > Apologies in advance :^)
-
 
 ## Extra Prelim-related notes
 
