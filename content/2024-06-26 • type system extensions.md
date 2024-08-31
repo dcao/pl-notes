@@ -1,0 +1,2 @@
+- [x] [[pierceTAPL12132002|TAPL 12, 13, 14: Normalization, references, and exceptions]] ✅ 2024-06-25
+- [x] [[pierceTAPL15182002|TAPL 15, 18: Subtyping & OOP]] ✅ 2024-07-02

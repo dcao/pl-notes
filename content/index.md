@@ -4,7 +4,7 @@ title: David's PL Notes
 
 # About this website
 
-Welcome to [David's](https://cao.sh) PL Prelim Notes! This website contains a bunch of notes on topics on programming language (PL) implementation and theory. This site might be useful for you for a few reasons:
+Welcome to [David's](https://cao.sh) PL Notes! This website contains a bunch of notes on topics on programming language (PL) implementation and theory. This site might be useful for you for a few reasons:
 
 - You're currently studying for the [UC Berkeley PL Prelim](https://docs.google.com/document/d/1HbkKsJ1iJSXSGZ9C_gIlVJbiDjiuDUQDp1YT-QalStM/edit), and you're looking for topics to study, resources for those topics, and general notes on the relevant topics.
 - You're interested in PL generally, and are looking for readings & notes on a survey of different PL-related topics.
