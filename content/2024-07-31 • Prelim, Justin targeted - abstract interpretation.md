@@ -20,7 +20,7 @@
 - Are there any cases where this analysis is not *complete*—i.e., it says there is a potential ("may") divide by 0, but dividing by 0 is actually impossible?
 - How could you ameliorate this?
 
-## The full board
+# Board
 
 ![[286AE906-7486-4A38-B760-771771AF5DD9_1_105_c.jpeg]]
 
