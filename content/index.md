@@ -51,7 +51,7 @@ To give you an idea of how much reading and studying I did leading up to this te
 
 If you'd like to follow along with my study schedule, here's the order I went in:
 
-- First, I created the **scheduled study notes**, corresponding to a week's worth of reading according to the PL Prelim Study schedule provided by past students.
+- First, I created the **scheduled study notes**, corresponding to the PL Prelim Study schedule provided by past students.
 - Next, I created **extra topic** notes for topics that weren't covered by this scheduled study.
 - Finally, I created **study guides** in the week before the test to go over my old notes and figure out the key ideas to retain.
 
