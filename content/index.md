@@ -32,19 +32,28 @@ If you have any questions, feel free to email me (it's on my website linked abov
 
 ## Extra Prelim-related notes
 
-From the syllabus:
+If you're taking the PL prelim, there are a number of things to keep in mind. The syllabus suggests that, even though it lists a bunch of different topics and readings for those topics, those alone won't be sufficient to cover the material needed:
 
 > Keep in mind that some topics---for example language design and implementation---are rather broad. It is expected that students can answer reasonable open-ended questions that go beyond the content of papers listed below.
 
-...and something else somebody told me at some point:
+But don't let this intimidate you! For the most part, the PL prelim isn't designed around memorization of specific vocabulary or parts of specific papers; rather, it's about understanding and internalization of concepts. So while the reading serves as a useful resource and starting point to ground your understanding in each of the topics, you'll probably find yourself naturally looking for other resources to help supplement your understanding of the topics!
 
-> Since this prelim is about understanding of topics, checking off the readings probably won't be sufficient. Completion is finished when you understand the topic, and you should definitely add additional readings to the topics where needed.
+As for how you can find these other resources, the short answer is: Google! A lot of the topics have extensive Wikipedia pages, along with lecture slides and notes from other folks who have helpfully uploaded their course materials online. When I studied for the test, a lot of how I acquired these extra bits of information was through these other auxiliary resources: lecture notes, StackOverflow answers, that sort of thing. I also used notes from other folks who had taken the PL prelim beforehand (see the extra resources in the section below this). If you're looking for pointers to what kinds of readings are helpful for building understanding, all of the resources I used for each reading or topic are linked within the notes for those readings/topics, respectively. But this proecss will necessarily look different for everyone, and the readings that work for me might not necessarily work for you!
 
-> [!info] Legend
-> - [ ] Reading or topic
-> - [x] Completed (or skimmed) reading or topic
-> - [ ] ==Missing reading==
-> - [ ] % Optional (prepended with a `%`)
+In general, these notes are meant to be a supplement, helpfully summarizing and explaining concepts that might have more dense explanations in other readings. Most of the studying and learning you'll do is in taking your own notes though: internalizing and building intuition for these concepts yourself!
+
+To give you an idea of how much reading and studying I did leading up to this test, the topics/readings listed below have checkboxes according to this legend:
+
+- [ ] Uncomplete reading or topic
+- [x] Completed (or skimmed) reading or topic
+- [ ] ==Missing reading==
+- [ ] % Optional reading (prepended with a `%`)
+
+If you'd like to follow along with my study schedule, here's the order I went in:
+
+- First, I created the **scheduled study notes**, corresponding to a week's worth of reading according to the PL Prelim Study schedule provided by past students.
+- Next, I created **extra topic** notes for topics that weren't covered by this scheduled study.
+- Finally, I created **study guides** in the week before the test to go over my old notes and figure out the key ideas to retain.
 
 ## Extra resources
 
