@@ -326,25 +326,25 @@ See [Dragon Book](https://en.wikipedia.org/wiki/Compilers:_Principles,_Technique
 - [ ] % Static checking of assertions/annotations, maybe ESC/Java paper ([Extended static checking for Java](http://network.ku.edu.tr/~stasiran/ecoe560/Papers/krml103.pdf), Flanagan, et al., PLDI 2002)
 - [ ] % Specification inference, invariant generation, eg [DAIKON](http://homes.cs.washington.edu/~mernst/pubs/invariants-icse99.pdf).
 
-# Study seshes
+# Mock prelims
 
-## Mon: random with Justin
+## Random with Justin
 
-- [x] [[2024-08-12 • Justin, prelim grab bag]] 🔁 every week on Monday ⏳ 2024-08-12T12:30--13:30 ✅ 2024-08-12
-- [x] [[2024-08-05 • Justin, prelim grab bag]] 🔁 every week on Monday ⏳ 2024-08-05T12:30--13:30 ✅ 2024-08-06
-- [x] [[2024-07-29 • Justin, prelim grab bag]] 🔁 every week on Monday ⏳ 2024-07-29T12:30--13:30 ✅ 2024-07-29
+- [x] [[2024-08-12 • Prelim, Justin grab bag]] 🔁 every week on Monday ⏳ 2024-08-12T12:30--13:30 ✅ 2024-08-12
+- [x] [[2024-08-05 • Prelim, Justin grab bag]] 🔁 every week on Monday ⏳ 2024-08-05T12:30--13:30 ✅ 2024-08-06
+- [x] [[2024-07-29 • Prelim, Justin grab bag]] 🔁 every week on Monday ⏳ 2024-07-29T12:30--13:30 ✅ 2024-07-29
 
-## Wed: targeted with Justin
+## Targeted with Justin
 
-- [x] [[2024-08-14 • Justin, prelim targeted - auto-parallelization]] 🔁 every week on Wednesday ⏳ 2024-08-14T14:00--15:00 ✅ 2024-08-14
-- [x] Prelim targeted sesh w/ Justin 🔁 every week on Wednesday ⏳ 2024-08-07T14:00--15:00 ✅ 2024-08-08
-- [x] [[2024-07-31 • Justin, prelim targeted - abstract interpretation]] 🔁 every week on Wednesday ⏳ 2024-07-31T14:00--15:00 ✅ 2024-07-31
+- [x] [[2024-08-14 • Prelim, Justin targeted - auto-parallelization]] 🔁 every week on Wednesday ⏳ 2024-08-14T14:00--15:00 ✅ 2024-08-14
+- [x] [[2024-08-07 • Prelim, Justin targeted - program slicing]] 🔁 every week on Wednesday ⏳ 2024-08-07T14:00--15:00 ✅ 2024-08-08
+- [x] [[2024-07-31 • Prelim, Justin targeted - abstract interpretation]] 🔁 every week on Wednesday ⏳ 2024-07-31T14:00--15:00 ✅ 2024-07-31
 
-## Thu: Parker (one-off?)
+## Parker one-off
 
-- [x] [[2024-08-09 • Parker, prelim grab bag - axiomatic semantics]] ⏳ 2024-08-09T13:00 ✅ 2024-08-10
+- [x] [[2024-08-09 • Prelim, Parker grab bag - axiomatic semantics]] ⏳ 2024-08-09T13:00 ✅ 2024-08-10
 
 ## Federico one-off
 
-- [x] [[2024-08-21 • Federico, prelim grab bag]] ⏳ 2024-08-21T12:00--13:00 ✅ 2024-08-22
+- [x] [[2024-08-21 • Prelim, Federico grab bag]] ⏳ 2024-08-21T12:00--13:00 ✅ 2024-08-22
 
